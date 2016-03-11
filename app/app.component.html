@@ -1,9 +1,9 @@
-<h1>CBRA Determination Request</h1>
-<div style="margin-left:100px;">
+<h1 class="form-header">CBRA Determination Request</h1>
+<div>
 
     <div [hidden]="hideForm">
 
-        <form [ngFormModel]="form" (ngSubmit)="onSubmit(form.value)" style="border:1px solid;width:400px;padding:5px">
+        <form [ngFormModel]="form" (ngSubmit)="onSubmit(form.value)" class="cbra-form">
 
             <div [hidden]="hidePropertyGroup" ngControlGroup="propertygroup">
 
@@ -28,7 +28,7 @@
                 <label>Policy Number</label>
                 <input type="text" class="form-control" ngControl="policy_number">
 
-                <button type="button" (click)="showRequesterGroup()" class="btn btn-default">Next</button>
+                <button type="button" (click)="showRequesterGroup()" class="btn btn-default nav-ctrl-btn">Next</button>
 
             </div>
 
@@ -64,8 +64,8 @@
                 <label>Zipcode</label>
                 <input type="text" class="form-control" ngControl="zipcode">
 
-                <button type="button" (click)="showPropertyGroup()" class="btn btn-default">Back</button>
-                <button type="button" (click)="showCasefileGroup()" class="btn btn-default">Next</button>
+                <button type="button" (click)="showPropertyGroup()" class="btn btn-default nav-ctrl-btn">Back</button>
+                <button type="button" (click)="showCasefileGroup()" class="btn btn-default nav-ctrl-btn nav-ctrl-btn-second">Next</button>
 
             </div>
 
@@ -74,13 +74,11 @@
                 <label>Files</label>
                 <input type="file" multiple (change)="fileChangeEvent($event)" ngControl="files" />
 
-                <button type="button" (click)="showRequesterGroup()" class="btn btn-default">Back</button>
+                <button type="button" (click)="showRequesterGroup()" class="btn btn-default nav-ctrl-btn">Back</button>
 
             </div>
 
-            <br/>
-
-            <button type="submit" class="btn btn-default" [disabled]="!form.valid">Submit</button>
+            <button type="submit" class="btn btn-default ctrl-btn-submit" [disabled]="!form.valid">Submit</button>
 
         </form>
 
