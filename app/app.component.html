@@ -7,6 +7,8 @@
 
             <div [hidden]="hidePropertyGroup" ngControlGroup="propertygroup">
 
+                <h2 class="form-group-header">Form 1 title</h2>
+
                 <label>Street</label>
                 <input type="text" class="form-control" ngControl="street">
 
@@ -33,6 +35,8 @@
             </div>
 
             <div [hidden]="hideRequesterGroup" ngControlGroup="requestergroup">
+
+                <h2 class="form-group-header">Form 2 title</h2>
 
                 <label>Salutation</label>
                 <input type="text" class="form-control" ngControl="salutation">
@@ -71,6 +75,7 @@
 
             <div [hidden]="hideCasefileGroup" ngControlGroup="casefilegroup">
 
+
                 <label>Files</label>
                 <input type="file" multiple (change)="fileChangeEvent($event)" ngControl="files" />
 
@@ -85,6 +90,8 @@
     </div>
 
     <div [hidden]="hideSummary">
+
+        <h2 class="form-group-header">Form 3 title</h2>
 
         <h3>Request Summary</h3>
 

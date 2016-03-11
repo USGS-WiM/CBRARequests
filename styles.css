@@ -50,6 +50,21 @@ body{
     font-family: 'Open Sans', sans-serif;
 }
 
+.form-group-header{
+    border-bottom: 1px solid #e2e2e2;
+    box-sizing: border-box;
+    padding: 0 0 5px 0;
+    margin: 10px auto 20px auto;
+    display: block;
+    width: 100%;
+    text-align: left;
+    letter-spacing: 1px;
+    font-size: 12pt;
+    text-transform: uppercase;
+    color: #3d4360;
+    font-weight: bolder;
+}
+
 .cbra-form label{
     display: block;
     width: 100%;
