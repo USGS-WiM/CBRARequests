@@ -24,6 +24,8 @@ System.register(['angular2/core', 'angular2/http'], function(exports_1, context_
             CasefileService = (function () {
                 function CasefileService(http) {
                     this.http = http;
+                    this._username = "public";
+                    this._password = "public";
                     this._CasefilesUrl = 'http://localhost:8000/cbraservices/casefiles/';
                 }
                 CasefileService.prototype.getCases = function (searchArgs) {
@@ -43,7 +45,6 @@ System.register(['angular2/core', 'angular2/http'], function(exports_1, context_
                             xhr.onreadystatechange = function () {
                                 if (xhr.readyState == 4) {
                                     if (xhr.status == 201) {
-                                        console.log(xhr.response);
                                         resolve(JSON.parse(xhr.response));
                                     }
                                     else {
@@ -52,6 +53,7 @@ System.register(['angular2/core', 'angular2/http'], function(exports_1, context_
                                 }
                             };
                             xhr.open("POST", _this._CasefilesUrl, true);
+                            xhr.setRequestHeader("Authorization", "Basic " + btoa(_this._username + ":" + _this._password));
                             xhr.send(formData);
                         };
                         for (var i = 0; i < files.length; i++) {

@@ -231,7 +231,7 @@ export class AppComponent {
                     else {this.showSummary();}
                 },
                 error =>  console.error(<any>error)
-                );
+            );
     }
 
     private _callCreateCasefiles () {

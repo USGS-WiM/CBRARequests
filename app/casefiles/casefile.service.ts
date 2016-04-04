@@ -5,9 +5,12 @@ import {Http, URLSearchParams} from 'angular2/http';
 export class CasefileService {
     constructor (private http: Http) {}
 
+    private _username = "public";
+    private _password = "public";
+
     private _CasefilesUrl = 'http://localhost:8000/cbraservices/casefiles/';
 
-    getCases (searchArgs?: URLSearchParams) {
+    getCasefiles (searchArgs?: URLSearchParams) {
         return this.http.get(this._CasefilesUrl, {search: searchArgs})
             .toPromise()
             .then(res => res.json())
@@ -24,7 +27,6 @@ export class CasefileService {
                 xhr.onreadystatechange = function () {
                     if (xhr.readyState == 4) {
                         if (xhr.status == 201) {
-                            console.log(xhr.response);
                             resolve(JSON.parse(xhr.response));
                         } else {
                             reject(xhr.response);
@@ -32,6 +34,7 @@ export class CasefileService {
                     }
                 };
                 xhr.open("POST", this._CasefilesUrl, true);
+                xhr.setRequestHeader("Authorization", "Basic " + btoa(this._username + ":" + this._password));
                 xhr.send(formData);
             }
         });
