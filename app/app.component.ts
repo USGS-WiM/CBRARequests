@@ -26,7 +26,10 @@ export class AppComponent {
     requestproperty = {};
     requestrequester = {};
     
-    filesToUpload: Array<File>;
+    private _filesToUpload: Array<File>;
+    filesToUploadDetails: Object[] = [];
+    notready: Boolean = true;
+    noxhr: Boolean = true;
 
     //private _today = new Date().toISOString().substr(0,10);
     
@@ -58,7 +61,7 @@ export class AppComponent {
     rzipcode: Control = new Control("");
 
     casefilegroup: ControlGroup;
-    files: Control = new Control("");
+    casefiles: Control = new Control("");
 
     constructor (fb: FormBuilder,
                 private _caseService: CaseService,
@@ -90,9 +93,17 @@ export class AppComponent {
                 zipcode: this.rzipcode
             }),
             casefilegroup: fb.group({
-                files: this.files
+                casefiles: this.casefiles
             })
         });
+
+        // check of the browser supports XHR2, which allows file drag and drop
+        let xhr = new XMLHttpRequest();
+	    if (xhr.upload) {
+            this.noxhr = false;
+        }
+
+        this.notready = false;
     }
 
     hidePropertyGroup = false;
@@ -127,11 +138,25 @@ export class AppComponent {
         this.hideSummary = false;
     }
 
-    fileChangeEvent(fileInput: any){
-        this.filesToUpload = <Array<File>> fileInput.target.files;
+    fileDragHover(fileInput) {
+        fileInput.stopPropagation();
+        fileInput.preventDefault();
+        fileInput.target.className = (fileInput.type == "dragover" ? "hover" : "");
+    }
+
+    fileSelectHandler(fileInput: any){
+        this.fileDragHover(fileInput);
+        this._filesToUpload = <Array<File>> fileInput.target.files || fileInput.dataTransfer.files;
+        for (let i = 0, f; f = this._filesToUpload[i]; i++) {
+            let fileDetails = {'name': f.name, 'size': ((f.size)/1024/1024).toFixed(3)};
+            this.filesToUploadDetails.push(fileDetails);
+        }
     }
 
     onSubmit (newrequest) {
+
+        this.notready = true;
+
         // ensure required fields have values
         // TODO remove the console logging and replace with proper user notification
         if (!newrequest.propertygroup.street && !newrequest.propertygroup.city) 
@@ -225,10 +250,14 @@ export class AppComponent {
                     this.requestcase = this._myCase;
                     this.requestproperty = this._myProperty;
                     this.requestrequester = this._myRequester;
-                    if (this.filesToUpload) {
+                    if (this._filesToUpload) {
                         this._callCreateCasefiles();
                     }
-                    else {this.showSummary();}
+                    else {
+                        console.log(newcase);
+                        this.showSummary();
+                        this.notready = false;
+                    }
                 },
                 error =>  console.error(<any>error)
             );
@@ -236,11 +265,12 @@ export class AppComponent {
 
     private _callCreateCasefiles () {
         // create the new casefiles
-        this._casefileService.createCasefiles(this._myCase.id, this.filesToUpload)
+        this._casefileService.createCasefiles(this._myCase.id, this._filesToUpload)
             .then(
                 (result) => {
                     console.log(result);
-                    this.showSummary()
+                    this.showSummary();
+                    this.notready = false;
                 },
                 (error) => {
                     console.error(error);

@@ -54,6 +54,9 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this.requestcase = {};
                     this.requestproperty = {};
                     this.requestrequester = {};
+                    this.filesToUploadDetails = [];
+                    this.notready = true;
+                    this.noxhr = true;
                     this.pstreet = new common_1.Control("", common_1.Validators.required);
                     this.punit = new common_1.Control("");
                     this.pcity = new common_1.Control("", common_1.Validators.required);
@@ -71,7 +74,7 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this.rcity = new common_1.Control("");
                     this.rstate = new common_1.Control("");
                     this.rzipcode = new common_1.Control("");
-                    this.files = new common_1.Control("");
+                    this.casefiles = new common_1.Control("");
                     this.hidePropertyGroup = false;
                     this.hideRequesterGroup = true;
                     this.hideCasefileGroup = true;
@@ -100,9 +103,15 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                             zipcode: this.rzipcode
                         }),
                         casefilegroup: fb.group({
-                            files: this.files
+                            casefiles: this.casefiles
                         })
                     });
+                    // check of the browser supports XHR2, which allows file drag and drop
+                    var xhr = new XMLHttpRequest();
+                    if (xhr.upload) {
+                        this.noxhr = false;
+                    }
+                    this.notready = false;
                 }
                 AppComponent.prototype.showPropertyGroup = function () {
                     this.hidePropertyGroup = false;
@@ -126,10 +135,21 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this.hideForm = true;
                     this.hideSummary = false;
                 };
-                AppComponent.prototype.fileChangeEvent = function (fileInput) {
-                    this.filesToUpload = fileInput.target.files;
+                AppComponent.prototype.fileDragHover = function (fileInput) {
+                    fileInput.stopPropagation();
+                    fileInput.preventDefault();
+                    fileInput.target.className = (fileInput.type == "dragover" ? "hover" : "");
+                };
+                AppComponent.prototype.fileSelectHandler = function (fileInput) {
+                    this.fileDragHover(fileInput);
+                    this._filesToUpload = fileInput.target.files || fileInput.dataTransfer.files;
+                    for (var i = 0, f = void 0; f = this._filesToUpload[i]; i++) {
+                        var fileDetails = { 'name': f.name, 'size': ((f.size) / 1024 / 1024).toFixed(3) };
+                        this.filesToUploadDetails.push(fileDetails);
+                    }
                 };
                 AppComponent.prototype.onSubmit = function (newrequest) {
+                    this.notready = true;
                     // ensure required fields have values
                     // TODO remove the console logging and replace with proper user notification
                     if (!newrequest.propertygroup.street && !newrequest.propertygroup.city) {
@@ -209,21 +229,24 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                         _this.requestcase = _this._myCase;
                         _this.requestproperty = _this._myProperty;
                         _this.requestrequester = _this._myRequester;
-                        if (_this.filesToUpload) {
+                        if (_this._filesToUpload) {
                             _this._callCreateCasefiles();
                         }
                         else {
+                            console.log(newcase);
                             _this.showSummary();
+                            _this.notready = false;
                         }
                     }, function (error) { return console.error(error); });
                 };
                 AppComponent.prototype._callCreateCasefiles = function () {
                     var _this = this;
                     // create the new casefiles
-                    this._casefileService.createCasefiles(this._myCase.id, this.filesToUpload)
+                    this._casefileService.createCasefiles(this._myCase.id, this._filesToUpload)
                         .then(function (result) {
                         console.log(result);
                         _this.showSummary();
+                        _this.notready = false;
                     }, function (error) {
                         console.error(error);
                     });

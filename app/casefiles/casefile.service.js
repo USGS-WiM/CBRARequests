@@ -28,12 +28,13 @@ System.register(['angular2/core', 'angular2/http'], function(exports_1, context_
                     this._password = "public";
                     this._CasefilesUrl = 'http://localhost:8000/cbraservices/casefiles/';
                 }
-                CasefileService.prototype.getCases = function (searchArgs) {
+                CasefileService.prototype.getCasefiles = function (searchArgs) {
                     return this.http.get(this._CasefilesUrl, { search: searchArgs })
                         .toPromise()
                         .then(function (res) { return res.json(); })
                         .catch(this.handleError);
                 };
+                // using xhr here instead of just Angular2's http.post because it seems to be the only thing that works for file uploads
                 CasefileService.prototype.createCasefiles = function (caseid, files) {
                     var _this = this;
                     return new Promise(function (resolve, reject) {

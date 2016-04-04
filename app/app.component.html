@@ -1,104 +1,114 @@
-<h1 class="form-header">CBRA Determination Request</h1>
-<div>
+<div [hidden]="!notready" align="center"><img [src]="'loading.gif'" /></div>
+<div [hidden]="notready">
+    <h1 class="form-header">CBRA Determination Request</h1>
+    <div>
 
-    <div [hidden]="hideForm">
+        <div [hidden]="hideForm">
 
-        <form [ngFormModel]="form" (ngSubmit)="onSubmit(form.value)" class="cbra-form">
+            <form [ngFormModel]="form" (ngSubmit)="onSubmit(form.value)" class="cbra-form">
 
-            <div [hidden]="hidePropertyGroup" ngControlGroup="propertygroup">
+                <div [hidden]="hidePropertyGroup" ngControlGroup="propertygroup">
 
-                <h2 class="form-group-header">Form 1 title</h2>
+                    <h2 class="form-group-header">Property Information</h2>
 
-                <label>Street</label>
-                <input type="text" class="form-control" ngControl="street">
+                    <label>Street</label>
+                    <input type="text" class="form-control" ngControl="street">
 
-                <label>Unit</label>
-                <input type="text" class="form-control" ngControl="unit">
+                    <label>Unit</label>
+                    <input type="text" class="form-control" ngControl="unit">
 
-                <label>City</label>
-                <input type="text" class="form-control" ngControl="city">
+                    <label>City</label>
+                    <input type="text" class="form-control" ngControl="city">
 
-                <label>State</label>
-                <input type="text" class="form-control" ngControl="state">
+                    <label>State</label>
+                    <input type="text" class="form-control" ngControl="state">
 
-                <label>Zipcode</label>
-                <input type="text" class="form-control" ngControl="zipcode">
+                    <label>Zipcode</label>
+                    <input type="text" class="form-control" ngControl="zipcode">
 
-                <label>Subdivision</label>
-                <input type="text" class="form-control" ngControl="subdivision">
+                    <label>Subdivision</label>
+                    <input type="text" class="form-control" ngControl="subdivision">
 
-                <label>Policy Number</label>
-                <input type="text" class="form-control" ngControl="policy_number">
+                    <label>Policy Number</label>
+                    <input type="text" class="form-control" ngControl="policy_number">
 
-                <button type="button" (click)="showRequesterGroup()" class="btn btn-default nav-ctrl-btn">Next</button>
+                    <button type="button" (click)="showRequesterGroup()" class="btn btn-default nav-ctrl-btn nav-ctrl-btn-second">Next</button>
 
-            </div>
+                </div>
 
-            <div [hidden]="hideRequesterGroup" ngControlGroup="requestergroup">
+                <div [hidden]="hideRequesterGroup" ngControlGroup="requestergroup">
 
-                <h2 class="form-group-header">Form 2 title</h2>
+                    <h2 class="form-group-header">Requester Information</h2>
 
-                <label>Salutation</label>
-                <input type="text" class="form-control" ngControl="salutation">
+                    <label>Salutation</label>
+                    <input type="text" class="form-control" ngControl="salutation">
 
-                <label>First Name</label>
-                <input type="text" class="form-control" ngControl="first_name">
+                    <label>First Name</label>
+                    <input type="text" class="form-control" ngControl="first_name">
 
-                <label>Last Name</label>
-                <input type="text" class="form-control" ngControl="last_name">
+                    <label>Last Name</label>
+                    <input type="text" class="form-control" ngControl="last_name">
 
-                <label>Organization</label>
-                <input type="text" class="form-control" ngControl="organization">
+                    <label>Organization</label>
+                    <input type="text" class="form-control" ngControl="organization">
 
-                <label>Email</label>
-                <input type="text" class="form-control" ngControl="email">
+                    <label>Email</label>
+                    <input type="text" class="form-control" ngControl="email">
 
-                <label>Street</label>
-                <input type="text" class="form-control" ngControl="street">
+                    <label>Street</label>
+                    <input type="text" class="form-control" ngControl="street">
 
-                <label>Unit</label>
-                <input type="text" class="form-control" ngControl="unit">
+                    <label>Unit</label>
+                    <input type="text" class="form-control" ngControl="unit">
 
-                <label>City</label>
-                <input type="text" class="form-control" ngControl="city">
+                    <label>City</label>
+                    <input type="text" class="form-control" ngControl="city">
 
-                <label>State</label>
-                <input type="text" class="form-control" ngControl="state">
+                    <label>State</label>
+                    <input type="text" class="form-control" ngControl="state">
 
-                <label>Zipcode</label>
-                <input type="text" class="form-control" ngControl="zipcode">
+                    <label>Zipcode</label>
+                    <input type="text" class="form-control" ngControl="zipcode">
 
-                <button type="button" (click)="showPropertyGroup()" class="btn btn-default nav-ctrl-btn">Back</button>
-                <button type="button" (click)="showCasefileGroup()" class="btn btn-default nav-ctrl-btn nav-ctrl-btn-second">Next</button>
+                    <button type="button" (click)="showPropertyGroup()" class="btn btn-default nav-ctrl-btn">Back</button>
+                    <button type="button" (click)="showCasefileGroup()" class="btn btn-default nav-ctrl-btn nav-ctrl-btn-second">Next</button>
 
-            </div>
+                </div>
 
-            <div [hidden]="hideCasefileGroup" ngControlGroup="casefilegroup">
+                <div [hidden]="hideCasefileGroup" ngControlGroup="casefilegroup">
 
+                    <h2 class="form-group-header">Files</h2>
 
-                <label>Files</label>
-                <input type="file" multiple (change)="fileChangeEvent($event)" ngControl="files" />
+                    <label>Files to Upload</label>
+                    <div class="form-group">
+                        <div id="casefilesToUpload">
+                            <p *ngFor="#fileDetails of filesToUploadDetails; #i=index"><span>{{ fileDetails.name }}: </span><span>{{ fileDetails.size }} MBs</span><button type="button" (click)="removeCasefile(i)">-</button></p>
+                        </div>
+                        <input id="fileselect" type="file" multiple (change)="fileSelectHandler($event)" ngControl="casefiles" />
+                            <!--<div id="filedrag" [hidden]="noxhr" (dragover)="fileDragHover($event)" (dragleave)="fileDragHover($event)" (drop)="fileSelectHandler($event)">or drop files here</div>-->
+                    </div>
 
-                <button type="button" (click)="showRequesterGroup()" class="btn btn-default nav-ctrl-btn">Back</button>
+                    <!--<input type="file" multiple (change)="fileChangeEvent($event)" ngControl="files" />-->
 
-            </div>
+                    <button type="button" (click)="showRequesterGroup()" class="btn btn-default nav-ctrl-btn">Back</button>
 
-            <button type="submit" class="btn btn-default ctrl-btn-submit" [disabled]="!form.valid">Submit</button>
+                </div>
 
-        </form>
+                <button type="submit" class="btn btn-default ctrl-btn-submit" [disabled]="!form.valid">Submit</button>
+
+            </form>
+
+        </div>
+
+        <div [hidden]="hideSummary">
+
+            <h2 class="form-group-header">Summary</h2>
+
+            <p *ngIf="requestcase.id">Case ID: {{ requestcase.id }}</p>
+            <p *ngIf="requestproperty.id">Property: {{ requestproperty.street }}, {{ requestproperty.city }}</p>
+            <p *ngIf="requestrequester.id">Requester: {{ requestrequester.first_name }}, {{ requestrequester.last_name }}</p>
+
+        </div>
 
     </div>
-
-    <div [hidden]="hideSummary">
-
-        <h2 class="form-group-header">Form 3 title</h2>
-
-        <h3>Request Summary</h3>
-
-        <p *ngIf="requestcase.id">Case ID: {{ requestcase.id }}</p>
-        <p *ngIf="requestproperty.id">Property: {{ requestproperty.street }}, {{ requestproperty.city }}</p>
-        <p *ngIf="requestrequester.id">Requester: {{ requestrequester.first_name }}, {{ requestrequester.last_name }}</p>
-
-    </div>
-
 </div>

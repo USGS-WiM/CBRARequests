@@ -17,6 +17,7 @@ export class CasefileService {
             .catch(this.handleError);
     }
 
+    // using xhr here instead of just Angular2's http.post because it seems to be the only thing that works for file uploads
     createCasefiles(caseid: number, files: Array<File>) {
         return new Promise((resolve, reject) => {
             for (let i = 0; i < files.length; i++) {
