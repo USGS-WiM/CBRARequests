@@ -3,6 +3,14 @@ body{
     font-family: 'Open Sans', 'Helvetica', sans-serif;
 }
 
+#test{
+    display: none;
+}
+
+.fileinput{
+    color: transparent;
+}
+
 #filedrag
 {
 	font-weight: bold;

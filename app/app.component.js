@@ -54,6 +54,7 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this.requestcase = {};
                     this.requestproperty = {};
                     this.requestrequester = {};
+                    this._filesToUpload = [];
                     this.filesToUploadDetails = [];
                     this.notready = true;
                     this.noxhr = true;
@@ -75,12 +76,14 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this.rstate = new common_1.Control("");
                     this.rzipcode = new common_1.Control("");
                     this.casefiles = new common_1.Control("");
-                    this.hidePropertyGroup = false;
+                    this.hideWelcome = false;
+                    this.hideStatusLookup = true;
+                    this.hideCaseForm = true;
+                    this.hidePropertyGroup = true;
                     this.hideRequesterGroup = true;
                     this.hideCasefileGroup = true;
-                    this.hideForm = false;
                     this.hideSummary = true;
-                    this.form = fb.group({
+                    this.caseForm = fb.group({
                         propertygroup: fb.group({
                             street: this.pstreet,
                             unit: this.punit,
@@ -113,42 +116,98 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     }
                     this.notready = false;
                 }
+                AppComponent.prototype.showStatusLookup = function () {
+                    this.hideWelcome = true;
+                    this.hideStatusLookup = false;
+                    this.hideCaseForm = true;
+                    this.hideSummary = true;
+                };
+                AppComponent.prototype.showCaseForm = function () {
+                    this.hideWelcome = true;
+                    this.hideStatusLookup = true;
+                    this.hideCaseForm = false;
+                    this.hidePropertyGroup = false;
+                    this.hideRequesterGroup = true;
+                    this.hideCasefileGroup = true;
+                    this.hideSummary = true;
+                };
                 AppComponent.prototype.showPropertyGroup = function () {
+                    this.hideWelcome = true;
+                    this.hideStatusLookup = true;
+                    this.hideCaseForm = false;
                     this.hidePropertyGroup = false;
                     this.hideRequesterGroup = true;
                     this.hideCasefileGroup = true;
                     this.hideSummary = true;
                 };
                 AppComponent.prototype.showRequesterGroup = function () {
+                    this.hideWelcome = true;
+                    this.hideStatusLookup = true;
+                    this.hideCaseForm = false;
                     this.hidePropertyGroup = true;
                     this.hideRequesterGroup = false;
                     this.hideCasefileGroup = true;
                     this.hideSummary = true;
                 };
                 AppComponent.prototype.showCasefileGroup = function () {
+                    this.hideWelcome = true;
+                    this.hideStatusLookup = true;
+                    this.hideCaseForm = false;
                     this.hidePropertyGroup = true;
                     this.hideRequesterGroup = true;
                     this.hideCasefileGroup = false;
                     this.hideSummary = true;
                 };
                 AppComponent.prototype.showSummary = function () {
-                    this.hideForm = true;
+                    this.hideWelcome = true;
+                    this.hideStatusLookup = true;
+                    this.hideCaseForm = true;
                     this.hideSummary = false;
+                };
+                AppComponent.prototype.showWelcome = function () {
+                    this.hideWelcome = false;
+                    this.hideStatusLookup = true;
+                    this.hideCaseForm = true;
+                    this.hideSummary = true;
+                };
+                AppComponent.prototype.getCaseStatus = function (caseID) {
+                    var _this = this;
+                    this.notready = true;
+                    this._caseService.getCases(new http_1.URLSearchParams('case_hash=' + caseID))
+                        .subscribe(function (acase) {
+                        _this._myCase = acase[0];
+                        _this.requestcase = _this._myCase;
+                        document.getElementById("case_id").innerHTML = '';
+                        _this.showSummary();
+                        _this.notready = false;
+                    }, function (error) { return console.error(error); });
                 };
                 AppComponent.prototype.fileDragHover = function (fileInput) {
                     fileInput.stopPropagation();
                     fileInput.preventDefault();
-                    fileInput.target.className = (fileInput.type == "dragover" ? "hover" : "");
+                    //fileInput.target.className = (fileInput.type == "dragover" ? "hover" : "");
                 };
                 AppComponent.prototype.fileSelectHandler = function (fileInput) {
                     this.fileDragHover(fileInput);
-                    this._filesToUpload = fileInput.target.files || fileInput.dataTransfer.files;
+                    var selectedFiles = fileInput.target.files || fileInput.dataTransfer.files;
+                    for (var i = 0, j = selectedFiles.length; i < j; i++) {
+                        this._filesToUpload.push(selectedFiles[i]);
+                    }
                     for (var i = 0, f = void 0; f = this._filesToUpload[i]; i++) {
                         var fileDetails = { 'name': f.name, 'size': ((f.size) / 1024 / 1024).toFixed(3) };
                         this.filesToUploadDetails.push(fileDetails);
                     }
                 };
+                AppComponent.prototype.removeCasefile = function (index) {
+                    this._filesToUpload.splice(index, 1);
+                    this.filesToUploadDetails.splice(index, 1);
+                };
                 AppComponent.prototype.onSubmit = function (newrequest) {
+                    // check if the submitter is a bot or a human
+                    // a bot will fill in the test field, but a human will not because it is hidden
+                    if (document.getElementById("test").innerHTML != '') {
+                        return false;
+                    }
                     this.notready = true;
                     // ensure required fields have values
                     // TODO remove the console logging and replace with proper user notification
@@ -200,7 +259,6 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     // create the requester object, then grab its ID for the relation to the case
                     this._requesterService.createRequester(this._myRequester)
                         .subscribe(function (newrequester) {
-                        console.log(newrequester);
                         _this._myRequester = newrequester;
                         _this._assignRequesterID();
                         // create the property object, then grab its ID for the relation to the case
@@ -212,7 +270,6 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     // create the property object, then grab its ID for the relation to the case
                     this._propertyService.createProperty(this._myProperty)
                         .subscribe(function (newproperty) {
-                        console.log(newproperty);
                         _this._myProperty = newproperty;
                         _this._assignPropertyID();
                         // create the new case
@@ -224,7 +281,6 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     // create the new case
                     this._caseService.createCase(this._myCase)
                         .subscribe(function (newcase) {
-                        console.log(newcase);
                         _this._myCase = newcase;
                         _this.requestcase = _this._myCase;
                         _this.requestproperty = _this._myProperty;
@@ -233,7 +289,6 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                             _this._callCreateCasefiles();
                         }
                         else {
-                            console.log(newcase);
                             _this.showSummary();
                             _this.notready = false;
                         }
@@ -244,7 +299,6 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     // create the new casefiles
                     this._casefileService.createCasefiles(this._myCase.id, this._filesToUpload)
                         .then(function (result) {
-                        console.log(result);
                         _this.showSummary();
                         _this.notready = false;
                     }, function (error) {
