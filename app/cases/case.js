@@ -6,7 +6,9 @@ System.register([], function(exports_1, context_1) {
         setters:[],
         execute: function() {
             Case = (function () {
-                function Case(request_date, requester, property, casefiles, id) {
+                function Case(case_number, status, request_date, requester, property, casefiles, id) {
+                    this.case_number = case_number;
+                    this.status = status;
                     this.request_date = request_date;
                     this.requester = requester;
                     this.property = property;

@@ -3,10 +3,19 @@ import {Http, URLSearchParams} from 'angular2/http';
 
 @Injectable()
 export class CasefileService {
-    constructor (private http: Http) {}
-
-    private _username = "public";
-    private _password = "public";
+    private _username: string;
+    private _password: string;
+    
+    constructor (private http: Http) {
+        if (sessionStorage.getItem('username') && sessionStorage.getItem('password')) {
+            this._username = sessionStorage.getItem('username');
+            this._password = sessionStorage.getItem('password');
+        }
+        else {
+            this._username = "public";
+            this._password = "public";
+        }
+    }
 
     private _CasefilesUrl = 'http://localhost:8000/cbraservices/casefiles/';
 

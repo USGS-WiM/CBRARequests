@@ -8,11 +8,16 @@ export class CaseService {
     constructor (private http: Http) {}
 
     private _CasesUrl = 'http://localhost:8000/cbraservices/cases/';
+    
+    getCase (id: number | string) {
+        return this.http.get(this._CasesUrl+id+'/')
+            .map(res => <Case> res.json())
+            .catch(this.handleError);
+    }
   
     getCases (searchArgs?: URLSearchParams) {
         return this.http.get(this._CasesUrl, {search: searchArgs})
             .map(res => <Case[]> res.json())
-            .do(data => console.log(data)) //eyeball results in the console
             .catch(this.handleError);
     }
 

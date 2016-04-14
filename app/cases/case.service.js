@@ -29,10 +29,14 @@ System.register(['angular2/core', 'angular2/http', 'rxjs/Observable'], function(
                     this.http = http;
                     this._CasesUrl = 'http://localhost:8000/cbraservices/cases/';
                 }
+                CaseService.prototype.getCase = function (id) {
+                    return this.http.get(this._CasesUrl + id + '/')
+                        .map(function (res) { return res.json(); })
+                        .catch(this.handleError);
+                };
                 CaseService.prototype.getCases = function (searchArgs) {
                     return this.http.get(this._CasesUrl, { search: searchArgs })
                         .map(function (res) { return res.json(); })
-                        .do(function (data) { return console.log(data); }) //eyeball results in the console
                         .catch(this.handleError);
                 };
                 CaseService.prototype.createCase = function (acase) {
