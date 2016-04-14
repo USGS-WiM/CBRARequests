@@ -28,9 +28,9 @@
 
           <!-- 2. Configure SystemJS -->
           <script>
+            var thisURL = 'http://' + document.location.host;
             System.config({
-              baseURL: 'http://" + document.location.host + "',
-              paths: {'*': '*.js'},
+              baseURL: thisURL,
               packages: {
                 app: {
                   format: 'register',
@@ -38,7 +38,7 @@
                 }
               }
             });
-            System.import('app/main')
+            System.import('cbra/cbrarequests/app/main')
                   .then(null, console.error.bind(console));
           </script>
 
