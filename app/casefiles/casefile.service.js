@@ -24,9 +24,15 @@ System.register(['angular2/core', 'angular2/http'], function(exports_1, context_
             CasefileService = (function () {
                 function CasefileService(http) {
                     this.http = http;
-                    this._username = "public";
-                    this._password = "public";
                     this._CasefilesUrl = 'http://localhost:8000/cbraservices/casefiles/';
+                    if (sessionStorage.getItem('username') && sessionStorage.getItem('password')) {
+                        this._username = sessionStorage.getItem('username');
+                        this._password = sessionStorage.getItem('password');
+                    }
+                    else {
+                        this._username = "public";
+                        this._password = "public";
+                    }
                 }
                 CasefileService.prototype.getCasefiles = function (searchArgs) {
                     return this.http.get(this._CasefilesUrl, { search: searchArgs })
