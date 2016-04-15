@@ -2,35 +2,24 @@
 
     <head>
           <title>Angular 2 CBRA Requests</title>
-          <!-- <base href="/"> -->
-          <script type="text/javascript">
-              document.write("<base href='http://" + document.location.host + "' />");
-          </script>
+          <base href="/cbra/cbrarequests/">
 
           <link rel="icon" type="image/png" href="favicon.ico">
           <link rel="stylesheet" href="styles.css">
 
-          <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-          <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700' type='text/css'>
+          <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+          <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700' rel='stylesheet' type='text/css'>
+          <link rel="stylesheet" href="styles.css">
 
           <!-- 1. Load libraries -->
           <!-- IE required polyfills, in this exact order -->
-          <script src="https://npmcdn.com/angular2@2.0.0-beta.13/es6/dev/src/testing/shims_for_IE.js"></script>
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/systemjs/0.19.26/system-polyfills.js"></script>
+          <script src="node_modules/es6-shim/es6-shim.min.js"></script>
+          <script src="node_modules/systemjs/dist/system-polyfills.js"></script>
 
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/2.0.0-beta.13/angular2-polyfills.min.js"></script>
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/systemjs/0.19.25/system.js"></script>
-          <script src="https://npmcdn.com/rxjs@5.0.0-beta.2/bundles/Rx.js"></script>
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/2.0.0-beta.13/angular2.dev.js"></script>
-
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/2.0.0-beta.13/http.min.js"></script>
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/2.0.0-beta.13/router.min.js"></script>
-
-          <!-- 2. Configure SystemJS -->
+          <script src="node_modules/angular2/bundles/angular2-polyfills.js"></script>
+          <script src="node_modules/systemjs/dist/system.src.js"></script>
           <script>
-            var thisURL = 'http://' + document.location.host;
             System.config({
-              baseURL: thisURL,
               packages: {
                 app: {
                   format: 'register',
@@ -38,7 +27,17 @@
                 }
               }
             });
-            System.import('cbra/cbrarequests/app/main')
+          </script>
+
+          <script src="node_modules/rxjs/bundles/Rx.js"></script>
+          <script src="node_modules/angular2/bundles/angular2.dev.js"></script>
+
+          <script src="node_modules/angular2/bundles/http.dev.js"></script>
+          <script src="node_modules/angular2/bundles/router.dev.js"></script>
+
+          <!-- 2. Configure SystemJS -->
+          <script>
+            System.import('app/main')
                   .then(null, console.error.bind(console));
           </script>
 
