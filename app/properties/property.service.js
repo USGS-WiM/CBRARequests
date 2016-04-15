@@ -1,4 +1,4 @@
-System.register(['angular2/core', 'angular2/http', 'rxjs/Observable'], function(exports_1, context_1) {
+System.register(['angular2/core', 'angular2/http', 'rxjs/Observable', '../app.settings'], function(exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -10,7 +10,7 @@ System.register(['angular2/core', 'angular2/http', 'rxjs/Observable'], function(
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
-    var core_1, http_1, Observable_1;
+    var core_1, http_1, Observable_1, app_settings_1;
     var PropertyService;
     return {
         setters:[
@@ -22,27 +22,42 @@ System.register(['angular2/core', 'angular2/http', 'rxjs/Observable'], function(
             },
             function (Observable_1_1) {
                 Observable_1 = Observable_1_1;
+            },
+            function (app_settings_1_1) {
+                app_settings_1 = app_settings_1_1;
             }],
         execute: function() {
             PropertyService = (function () {
                 function PropertyService(http) {
                     this.http = http;
-                    this._PropertiesUrl = 'http://localhost:8000/cbraservices/properties/';
                 }
-                PropertyService.prototype.getProperties = function (searchArgs) {
-                    return this.http.get(this._PropertiesUrl, { search: searchArgs })
+                PropertyService.prototype.getProperty = function (id) {
+                    var options = new http_1.RequestOptions({ headers: app_settings_1.APP_SETTINGS.AUTH_JSON_HEADERS });
+                    return this.http.get(app_settings_1.APP_SETTINGS.PROPERTIES_URL + id + '/', options)
                         .map(function (res) { return res.json(); })
-                        .do(function (data) { return console.log(data); }) //eyeball results in the console
+                        .catch(this.handleError);
+                };
+                PropertyService.prototype.getProperties = function (searchArgs) {
+                    var options = new http_1.RequestOptions({ headers: app_settings_1.APP_SETTINGS.AUTH_JSON_HEADERS, search: searchArgs });
+                    return this.http.get(app_settings_1.APP_SETTINGS.PROPERTIES_URL, options)
+                        .map(function (res) { return res.json(); })
                         .catch(this.handleError);
                 };
                 PropertyService.prototype.createProperty = function (property) {
-                    /*let newproperty = new Property(
-                        property.street, property.city, property.state, property.zipcode,
-                        property.unit, property.subdivision, property.policy_number, property.id);*/
                     var body = JSON.stringify(property);
-                    var headers = new http_1.Headers({ 'Content-Type': 'application/json' });
-                    var options = new http_1.RequestOptions({ headers: headers });
-                    return this.http.post(this._PropertiesUrl, body, options)
+                    var options = new http_1.RequestOptions({ headers: app_settings_1.APP_SETTINGS.AUTH_JSON_HEADERS });
+                    return this.http.post(app_settings_1.APP_SETTINGS.PROPERTIES_URL, body, options)
+                        .map(function (res) { return res.json(); })
+                        .catch(this.handleError);
+                };
+                PropertyService.prototype.updateProperty = function (property) {
+                    // pull out the ID
+                    var id = property.id;
+                    delete property['id'];
+                    var body = JSON.stringify(property);
+                    var options = new http_1.RequestOptions({ headers: app_settings_1.APP_SETTINGS.AUTH_JSON_HEADERS });
+                    //let options = new RequestOptions({headers: new Headers({ 'Accept': 'application/json', 'Content-Type': 'application/json' }) });
+                    return this.http.put(app_settings_1.APP_SETTINGS.PROPERTIES_URL + id + '/', body, options)
                         .map(function (res) { return res.json(); })
                         .catch(this.handleError);
                 };
