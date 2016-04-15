@@ -2,29 +2,48 @@ import {Injectable}     from 'angular2/core';
 import {Http, Response, Headers, RequestOptions, URLSearchParams} from 'angular2/http';
 import {Property}       from './property';
 import {Observable}     from 'rxjs/Observable';
+import {APP_SETTINGS}   from '../app.settings';
 
 @Injectable()
 export class PropertyService {
     constructor (private http: Http) {}
 
-    private _PropertiesUrl = 'http://localhost:8000/cbraservices/properties/';
+    getProperty (id: number | string) {
+        let options = new RequestOptions({ headers: APP_SETTINGS.AUTH_JSON_HEADERS });
+
+        return this.http.get(APP_SETTINGS.PROPERTIES_URL+id+'/',options)
+            .map(res => <Property> res.json())
+            .catch(this.handleError);
+    }
   
     getProperties (searchArgs?: URLSearchParams) {
-        return this.http.get(this._PropertiesUrl, {search: searchArgs})
+        let options = new RequestOptions({ headers: APP_SETTINGS.AUTH_JSON_HEADERS, search: searchArgs });
+
+        return this.http.get(APP_SETTINGS.PROPERTIES_URL, options)
             .map(res => <Property[]> res.json())
-            .do(data => console.log(data)) //eyeball results in the console
             .catch(this.handleError);
     }
 
     createProperty (property: Property) : Observable<Property> {
-        /*let newproperty = new Property(
-            property.street, property.city, property.state, property.zipcode,
-            property.unit, property.subdivision, property.policy_number, property.id);*/
         let body = JSON.stringify(property);
-        let headers = new Headers({ 'Content-Type': 'application/json' });
-        let options = new RequestOptions({ headers: headers });
+        let options = new RequestOptions({ headers: APP_SETTINGS.AUTH_JSON_HEADERS });
 
-        return this.http.post(this._PropertiesUrl, body, options)
+        return this.http.post(APP_SETTINGS.PROPERTIES_URL, body, options)
+            .map(res => <Property> res.json())
+            .catch(this.handleError)
+    }
+
+    updateProperty (property: Property) : Observable<Property> {
+        // pull out the ID
+        let id = property.id;
+        delete property['id'];
+
+        let body = JSON.stringify(property);
+        let options = new RequestOptions({ headers: APP_SETTINGS.AUTH_JSON_HEADERS });
+        //let options = new RequestOptions({headers: new Headers({ 'Accept': 'application/json', 'Content-Type': 'application/json' }) });
+
+
+        return this.http.put(APP_SETTINGS.PROPERTIES_URL+id+'/', body, options)
             .map(res => <Property> res.json())
             .catch(this.handleError)
     }

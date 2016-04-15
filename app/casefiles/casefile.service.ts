@@ -1,32 +1,20 @@
 import {Injectable}     from 'angular2/core';
-import {Http, URLSearchParams} from 'angular2/http';
+import {Http, RequestOptions, URLSearchParams} from 'angular2/http';
+import {APP_SETTINGS}   from '../app.settings';
 
 @Injectable()
 export class CasefileService {
-    private _username: string;
-    private _password: string;
-    
-    constructor (private http: Http) {
-        if (sessionStorage.getItem('username') && sessionStorage.getItem('password')) {
-            this._username = sessionStorage.getItem('username');
-            this._password = sessionStorage.getItem('password');
-        }
-        else {
-            this._username = "public";
-            this._password = "public";
-        }
-    }
-
-    private _CasefilesUrl = 'http://localhost:8000/cbraservices/casefiles/';
+    constructor (private http: Http) {}
 
     getCasefiles (searchArgs?: URLSearchParams) {
-        return this.http.get(this._CasefilesUrl, {search: searchArgs})
+        let options = new RequestOptions({ headers: APP_SETTINGS.AUTH_JSON_HEADERS, search: searchArgs });
+
+        return this.http.get(APP_SETTINGS.CASEFILES_URL, options)
             .toPromise()
             .then(res => res.json())
             .catch(this.handleError);
     }
 
-    // using xhr here instead of just Angular2's http.post because it seems to be the only thing that works for file uploads
     createCasefiles(caseid: number, files: Array<File>) {
         return new Promise((resolve, reject) => {
             for (let i = 0; i < files.length; i++) {
@@ -43,8 +31,8 @@ export class CasefileService {
                         }
                     }
                 };
-                xhr.open("POST", this._CasefilesUrl, true);
-                xhr.setRequestHeader("Authorization", "Basic " + btoa(this._username + ":" + this._password));
+                xhr.open("POST", APP_SETTINGS.CASEFILES_URL, true);
+                xhr.setRequestHeader("Authorization", "Basic " + btoa(sessionStorage.getItem('username') + ":" + sessionStorage.getItem('password')));
                 xhr.send(formData);
             }
         });
