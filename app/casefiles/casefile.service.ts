@@ -32,7 +32,14 @@ export class CasefileService {
                     }
                 };
                 xhr.open("POST", APP_SETTINGS.CASEFILES_URL, true);
-                xhr.setRequestHeader("Authorization", "Basic " + btoa(sessionStorage.getItem('username') + ":" + sessionStorage.getItem('password')));
+                //xhr.setRequestHeader("Authorization", "Basic " + btoa(sessionStorage.getItem('username') + ":" + sessionStorage.getItem('password')));
+                xhr.setRequestHeader(
+                    'Authorization', 'Basic ' +
+                    btoa(
+                        (sessionStorage.getItem('username') ? sessionStorage.getItem('username') : 'public') + ':' +
+                        (sessionStorage.getItem('password') ? sessionStorage.getItem('password') : 'public')
+                    )
+                );
                 xhr.send(formData);
             }
         });

@@ -190,6 +190,16 @@ export class AppComponent {
                 error =>  console.error(<any>error));
     }
 
+    fillNFIP() {
+        let nfip = this._requesterService.getRequesters(new URLSearchParams('organization=NFIP'))
+            .subscribe(
+                requester => {
+                    this._myRequester = requester[0];
+                    // TODO: populate requester controls
+                },
+                error =>  console.error(<any>error));
+    };
+
     fileDragHover(fileInput) {
         fileInput.stopPropagation();
         fileInput.preventDefault();

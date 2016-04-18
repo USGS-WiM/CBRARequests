@@ -70,6 +70,8 @@
 
                     <h2 class="form-group-header">Requester Information</h2>
 
+                    <!-- <button type="button" (click)="fillNFIP()" class="btn btn-default nav-ctrl-btn">NFIP</button> -->
+
                     <label>Salutation</label>
                     <input type="text" class="form-control" ngControl="salutation">
 
@@ -142,7 +144,7 @@
                 <p *ngIf="requestcase.request_date"><b>Reqest Date:</b> {{ requestcase.request_date }}</p>
                 <p *ngIf="requestcase.status"><b>Status:</b> {{ requestcase.status }}</p>
                 <p *ngIf="requestproperty.id"><b>Property:</b> {{ requestproperty.street }}, {{ requestproperty.city }}</p>
-                <p *ngIf="requestrequester.id"><b>Requester:</b> {{ requestrequester.first_name }}, {{ requestrequester.last_name }}</p>
+                <p *ngIf="requestrequester.id"><b>Requester:</b> {{ requestrequester.first_name }} {{ requestrequester.last_name }}</p>
 
                 <button type="button" (click)="showWelcome()" class="btn btn-default nav-ctrl-btn">Home</button>
 
