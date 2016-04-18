@@ -53,7 +53,10 @@ System.register(['angular2/core', 'angular2/http', '../app.settings'], function(
                                 }
                             };
                             xhr.open("POST", app_settings_1.APP_SETTINGS.CASEFILES_URL, true);
-                            xhr.setRequestHeader("Authorization", "Basic " + btoa(sessionStorage.getItem('username') + ":" + sessionStorage.getItem('password')));
+                            //xhr.setRequestHeader("Authorization", "Basic " + btoa(sessionStorage.getItem('username') + ":" + sessionStorage.getItem('password')));
+                            xhr.setRequestHeader('Authorization', 'Basic ' +
+                                btoa((sessionStorage.getItem('username') ? sessionStorage.getItem('username') : 'public') + ':' +
+                                    (sessionStorage.getItem('password') ? sessionStorage.getItem('password') : 'public')));
                             xhr.send(formData);
                         };
                         for (var i = 0; i < files.length; i++) {
