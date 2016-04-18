@@ -182,6 +182,15 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                         _this.notready = false;
                     }, function (error) { return console.error(error); });
                 };
+                AppComponent.prototype.fillNFIP = function () {
+                    var _this = this;
+                    var nfip = this._requesterService.getRequesters(new http_1.URLSearchParams('organization=NFIP'))
+                        .subscribe(function (requester) {
+                        _this._myRequester = requester[0];
+                        // TODO: populate requester controls
+                    }, function (error) { return console.error(error); });
+                };
+                ;
                 AppComponent.prototype.fileDragHover = function (fileInput) {
                     fileInput.stopPropagation();
                     fileInput.preventDefault();
