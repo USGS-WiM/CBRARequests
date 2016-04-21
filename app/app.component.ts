@@ -31,7 +31,7 @@ export class AppComponent {
     active = true;
     notready: Boolean = true;
     noxhr: Boolean = true;
-    alreadyExists: Boolean = true;
+    alreadyExists: Boolean = false;
     salutations: String[] = ['Mr.', 'Ms.', 'Dr.'];
 
     //private _today = new Date().toISOString().substr(0,10);
@@ -39,9 +39,6 @@ export class AppComponent {
     private _myCase: Case;
     private _myProperty: Property;
     private _myRequester: Requester;
-    private _foundCases: Case[];
-    private _foundProperties: Property[];
-    private _foundRequesters: Requester[];
 
     caseForm: ControlGroup;
 
@@ -103,7 +100,7 @@ export class AppComponent {
             })
         });
 
-        // check of the browser supports XHR2, which allows file drag and drop
+        // check if the browser supports XHR2, which allows file drag and drop
         let xhr = new XMLHttpRequest();
 	    if (xhr.upload) {
             this.noxhr = false;
@@ -279,23 +276,6 @@ export class AppComponent {
 
         // check if the property, requester, or case already exist
         this._getProperties(this._myProperty);
-        if (this._foundProperties.length > 0) {this._myProperty.id = this._foundProperties[0].id;}
-        this._getRequesters(this._myRequester);
-        if (this._foundRequesters.length > 0) {this._myRequester.id = this._foundRequesters[0].id;}
-        if (this._myProperty.id && this._myRequester.id) {
-            this._getCases(this._myProperty.id, this._myRequester.id);
-            if (this._foundCases.length > 0) {
-                // inform the user that the request already exists and how the summary
-                this._myCase.id = this._foundCases[0].id;
-                this.showSummary();
-                this.clearForm();
-                this.alreadyExists = true;
-                this.notready = false;
-            }
-            else {
-                // send the new request to the DB
-                this._createRequest();}
-        }
 
     }
 
@@ -303,7 +283,18 @@ export class AppComponent {
         this._caseService.getCases(new URLSearchParams('property='+propertyID+'&requester='+requesterID))
             .subscribe(
                 cases => {
-                    this._foundCases = cases;
+                    if (cases.length > 0) {
+                        // inform the user that the request already exists and how the summary
+                        this._myCase.id = cases[0].id;
+                        this.showSummary();
+                        this.clearForm();
+                        this.alreadyExists = true;
+                        this.notready = false;
+                    }
+                    else {
+                        // send the new request to the DB
+                        this._createRequest();
+                    }
                 },
                 error => console.error(<any>error));
     }
@@ -319,7 +310,8 @@ export class AppComponent {
             ))
             .subscribe(
                 properties => {
-                    this._foundProperties = properties;
+                    if (properties.length > 0) {this._myProperty.id = properties[0].id;}
+                    this._getRequesters(this._myRequester);
                 },
                 error => console.error(<any>error));
     }
@@ -340,7 +332,14 @@ export class AppComponent {
             ))
             .subscribe(
                 requesters => {
-                    this._foundRequesters = requesters;
+                    if (requesters.length > 0) {this._myRequester.id = requesters[0].id;}
+                    if (this._myProperty.id && this._myRequester.id) {
+                        this._getCases(this._myProperty.id, this._myRequester.id);
+                    }
+                    else {
+                        // send the new request to the DB
+                        this._createRequest();
+                    }
                 },
                 error => console.error(<any>error));
     }
