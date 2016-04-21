@@ -35,7 +35,7 @@
 
         <div [hidden]="hideCaseForm">
 
-            <form [ngFormModel]="caseForm" (ngSubmit)="onSubmit(caseForm.value)" class="cbra-form">
+            <form [ngFormModel]="caseForm" *ngIf="active" (ngSubmit)="onSubmit(caseForm.value)" class="cbra-form">
 
                 <div [hidden]="hidePropertyGroup" ngControlGroup="propertygroup">
 
@@ -72,8 +72,11 @@
 
                     <!-- <button type="button" (click)="fillNFIP()" class="btn btn-default nav-ctrl-btn">NFIP</button> -->
 
-                    <label>Salutation</label>
-                    <input type="text" class="form-control" ngControl="salutation">
+                    <label for="salutation">Salutation</label>
+                    <select id="salutation" class="form-control"  ngControl="salutation" (change)="updateSalutationControlValue(newSalutation.value)" #newSalutation>
+                        <option value=""></option>
+                        <option *ngFor="#salutation of salutations" [value]="salutation">{{salutation}}</option>
+                    </select>
 
                     <label>First Name</label>
                     <input type="text" class="form-control" ngControl="first_name">
@@ -139,6 +142,8 @@
             <div class="cbra-form">
 
                 <h2 class="form-group-header">Case Summary</h2>
+
+                <p [hidden]="!alreadyExists"><strong>A determination for this property by this requester has already been submitted.</strong></p>
 
                 <p *ngIf="requestcase.case_hash"><b>Case ID:</b> {{ requestcase.case_hash }}</p>
                 <p *ngIf="requestcase.request_date"><b>Request Date:</b> {{ requestcase.request_date }}</p>

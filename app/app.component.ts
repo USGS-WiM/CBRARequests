@@ -28,14 +28,20 @@ export class AppComponent {
     
     private _filesToUpload = [];
     filesToUploadDetails: Object[] = [];
+    active = true;
     notready: Boolean = true;
     noxhr: Boolean = true;
+    alreadyExists: Boolean = true;
+    salutations: String[] = ['Mr.', 'Ms.', 'Dr.'];
 
     //private _today = new Date().toISOString().substr(0,10);
     
     private _myCase: Case;
     private _myProperty: Property;
     private _myRequester: Requester;
+    private _foundCases: Case[];
+    private _foundProperties: Property[];
+    private _foundRequesters: Requester[];
 
     caseForm: ControlGroup;
 
@@ -223,6 +229,16 @@ export class AppComponent {
         this.filesToUploadDetails.splice(index, 1);
     }
 
+    updateSalutationControlValue(value) {
+        this.salutation.updateValue(value);
+    }
+
+    clearForm() {
+        // reset the form
+        this.active = false;
+        setTimeout(()=> { this.notready = false; this.active=true; }, 1000);
+    }
+
     onSubmit (newrequest) {
 
         // check if the submitter is a bot or a human
@@ -261,8 +277,72 @@ export class AppComponent {
             newrequest.requestergroup.email, newrequest.requestergroup.street, newrequest.requestergroup.unit,
             newrequest.requestergroup.city, newrequest.requestergroup.state, newrequest.requestergroup.zipcode);
 
-        // send the new requester to the DB
-        this._createRequest();
+        // check if the property, requester, or case already exist
+        this._getProperties(this._myProperty);
+        if (this._foundProperties.length > 0) {this._myProperty.id = this._foundProperties[0].id;}
+        this._getRequesters(this._myRequester);
+        if (this._foundRequesters.length > 0) {this._myRequester.id = this._foundRequesters[0].id;}
+        if (this._myProperty.id && this._myRequester.id) {
+            this._getCases(this._myProperty.id, this._myRequester.id);
+            if (this._foundCases.length > 0) {
+                // inform the user that the request already exists and how the summary
+                this._myCase.id = this._foundCases[0].id;
+                this.showSummary();
+                this.clearForm();
+                this.alreadyExists = true;
+                this.notready = false;
+            }
+            else {
+                // send the new request to the DB
+                this._createRequest();}
+        }
+
+    }
+
+    private _getCases(propertyID: number, requesterID: number) {
+        this._caseService.getCases(new URLSearchParams('property='+propertyID+'&requester='+requesterID))
+            .subscribe(
+                cases => {
+                    this._foundCases = cases;
+                },
+                error => console.error(<any>error));
+    }
+
+    private _getProperties(property: Property) {
+        this._propertyService.getProperties(
+            new URLSearchParams(
+                'street='+property.street
+                +'&unit='+property.unit
+                +'&city='+property.city
+                +'&state='+property.state
+                +'&zipcode='+property.zipcode
+            ))
+            .subscribe(
+                properties => {
+                    this._foundProperties = properties;
+                },
+                error => console.error(<any>error));
+    }
+
+    private _getRequesters(requester: Requester) {
+        this._requesterService.getRequesters(
+            new URLSearchParams(
+                'salutation='+requester.salutation
+                +'&first_name='+requester.first_name
+                +'&last_name='+requester.last_name
+                +'&organization='+requester.organization
+                +'&email='+requester.email
+                +'&street='+requester.street
+                +'&unit='+requester.unit
+                +'&city='+requester.city
+                +'&state='+requester.state
+                +'&zipcode='+requester.zipcode
+            ))
+            .subscribe(
+                requesters => {
+                    this._foundRequesters = requesters;
+                },
+                error => console.error(<any>error));
     }
     
     private _createRequest () {
@@ -323,11 +403,12 @@ export class AppComponent {
                     this.requestcase = this._myCase;
                     this.requestproperty = this._myProperty;
                     this.requestrequester = this._myRequester;
-                    if (this._filesToUpload) {
+                    if (this._filesToUpload.length > 0) {
                         this._callCreateCasefiles();
                     }
                     else {
                         this.showSummary();
+                        this.clearForm();
                         this.notready = false;
                     }
                 },
@@ -341,6 +422,7 @@ export class AppComponent {
             .then(
                 (result) => {
                     this.showSummary();
+                    this.clearForm();
                     this.notready = false;
                 },
                 (error) => {
