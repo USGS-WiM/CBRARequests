@@ -1,4 +1,4 @@
-System.register(['angular2/core', 'angular2/http'], function(exports_1, context_1) {
+System.register(['angular2/core', 'angular2/http', '../app.settings'], function(exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -10,7 +10,7 @@ System.register(['angular2/core', 'angular2/http'], function(exports_1, context_
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
-    var core_1, http_1;
+    var core_1, http_1, app_settings_1;
     var CasefileService;
     return {
         setters:[
@@ -19,24 +19,23 @@ System.register(['angular2/core', 'angular2/http'], function(exports_1, context_
             },
             function (http_1_1) {
                 http_1 = http_1_1;
+            },
+            function (app_settings_1_1) {
+                app_settings_1 = app_settings_1_1;
             }],
         execute: function() {
             CasefileService = (function () {
                 function CasefileService(http) {
                     this.http = http;
-                    this._username = "public";
-                    this._password = "public";
-                    this._CasefilesUrl = 'http://localhost:8000/cbraservices/casefiles/';
                 }
                 CasefileService.prototype.getCasefiles = function (searchArgs) {
-                    return this.http.get(this._CasefilesUrl, { search: searchArgs })
+                    var options = new http_1.RequestOptions({ headers: app_settings_1.APP_SETTINGS.AUTH_JSON_HEADERS, search: searchArgs });
+                    return this.http.get(app_settings_1.APP_SETTINGS.CASEFILES_URL, options)
                         .toPromise()
                         .then(function (res) { return res.json(); })
                         .catch(this.handleError);
                 };
-                // using xhr here instead of just Angular2's http.post because it seems to be the only thing that works for file uploads
                 CasefileService.prototype.createCasefiles = function (caseid, files) {
-                    var _this = this;
                     return new Promise(function (resolve, reject) {
                         var _loop_1 = function(i) {
                             var formData = new FormData();
@@ -53,8 +52,11 @@ System.register(['angular2/core', 'angular2/http'], function(exports_1, context_
                                     }
                                 }
                             };
-                            xhr.open("POST", _this._CasefilesUrl, true);
-                            xhr.setRequestHeader("Authorization", "Basic " + btoa(_this._username + ":" + _this._password));
+                            xhr.open("POST", app_settings_1.APP_SETTINGS.CASEFILES_URL, true);
+                            //xhr.setRequestHeader("Authorization", "Basic " + btoa(sessionStorage.getItem('username') + ":" + sessionStorage.getItem('password')));
+                            xhr.setRequestHeader('Authorization', 'Basic ' +
+                                btoa((sessionStorage.getItem('username') ? sessionStorage.getItem('username') : 'public') + ':' +
+                                    (sessionStorage.getItem('password') ? sessionStorage.getItem('password') : 'public')));
                             xhr.send(formData);
                         };
                         for (var i = 0; i < files.length; i++) {

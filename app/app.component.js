@@ -54,9 +54,13 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this.requestcase = {};
                     this.requestproperty = {};
                     this.requestrequester = {};
+                    this._filesToUpload = [];
                     this.filesToUploadDetails = [];
+                    this.active = true;
                     this.notready = true;
                     this.noxhr = true;
+                    this.alreadyExists = true;
+                    this.salutations = ['Mr.', 'Ms.', 'Dr.'];
                     this.pstreet = new common_1.Control("", common_1.Validators.required);
                     this.punit = new common_1.Control("");
                     this.pcity = new common_1.Control("", common_1.Validators.required);
@@ -75,12 +79,14 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this.rstate = new common_1.Control("");
                     this.rzipcode = new common_1.Control("");
                     this.casefiles = new common_1.Control("");
-                    this.hidePropertyGroup = false;
+                    this.hideWelcome = false;
+                    this.hideStatusLookup = true;
+                    this.hideCaseForm = true;
+                    this.hidePropertyGroup = true;
                     this.hideRequesterGroup = true;
                     this.hideCasefileGroup = true;
-                    this.hideForm = false;
                     this.hideSummary = true;
-                    this.form = fb.group({
+                    this.caseForm = fb.group({
                         propertygroup: fb.group({
                             street: this.pstreet,
                             unit: this.punit,
@@ -113,42 +119,116 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     }
                     this.notready = false;
                 }
+                AppComponent.prototype.showStatusLookup = function () {
+                    this.hideWelcome = true;
+                    this.hideStatusLookup = false;
+                    this.hideCaseForm = true;
+                    this.hideSummary = true;
+                };
+                AppComponent.prototype.showCaseForm = function () {
+                    this.hideWelcome = true;
+                    this.hideStatusLookup = true;
+                    this.hideCaseForm = false;
+                    this.hidePropertyGroup = false;
+                    this.hideRequesterGroup = true;
+                    this.hideCasefileGroup = true;
+                    this.hideSummary = true;
+                };
                 AppComponent.prototype.showPropertyGroup = function () {
+                    this.hideWelcome = true;
+                    this.hideStatusLookup = true;
+                    this.hideCaseForm = false;
                     this.hidePropertyGroup = false;
                     this.hideRequesterGroup = true;
                     this.hideCasefileGroup = true;
                     this.hideSummary = true;
                 };
                 AppComponent.prototype.showRequesterGroup = function () {
+                    this.hideWelcome = true;
+                    this.hideStatusLookup = true;
+                    this.hideCaseForm = false;
                     this.hidePropertyGroup = true;
                     this.hideRequesterGroup = false;
                     this.hideCasefileGroup = true;
                     this.hideSummary = true;
                 };
                 AppComponent.prototype.showCasefileGroup = function () {
+                    this.hideWelcome = true;
+                    this.hideStatusLookup = true;
+                    this.hideCaseForm = false;
                     this.hidePropertyGroup = true;
                     this.hideRequesterGroup = true;
                     this.hideCasefileGroup = false;
                     this.hideSummary = true;
                 };
                 AppComponent.prototype.showSummary = function () {
-                    this.hideForm = true;
+                    this.hideWelcome = true;
+                    this.hideStatusLookup = true;
+                    this.hideCaseForm = true;
                     this.hideSummary = false;
                 };
+                AppComponent.prototype.showWelcome = function () {
+                    this.hideWelcome = false;
+                    this.hideStatusLookup = true;
+                    this.hideCaseForm = true;
+                    this.hideSummary = true;
+                };
+                AppComponent.prototype.getCaseStatus = function (caseID) {
+                    var _this = this;
+                    this.notready = true;
+                    this._caseService.getCases(new http_1.URLSearchParams('case_hash=' + caseID))
+                        .subscribe(function (acase) {
+                        _this._myCase = acase[0];
+                        _this.requestcase = _this._myCase;
+                        document.getElementById("case_id").innerHTML = '';
+                        _this.showSummary();
+                        _this.notready = false;
+                    }, function (error) { return console.error(error); });
+                };
+                AppComponent.prototype.fillNFIP = function () {
+                    var _this = this;
+                    var nfip = this._requesterService.getRequesters(new http_1.URLSearchParams('organization=NFIP'))
+                        .subscribe(function (requester) {
+                        _this._myRequester = requester[0];
+                        // TODO: populate requester controls
+                    }, function (error) { return console.error(error); });
+                };
+                ;
                 AppComponent.prototype.fileDragHover = function (fileInput) {
                     fileInput.stopPropagation();
                     fileInput.preventDefault();
-                    fileInput.target.className = (fileInput.type == "dragover" ? "hover" : "");
+                    //fileInput.target.className = (fileInput.type == "dragover" ? "hover" : "");
                 };
                 AppComponent.prototype.fileSelectHandler = function (fileInput) {
                     this.fileDragHover(fileInput);
-                    this._filesToUpload = fileInput.target.files || fileInput.dataTransfer.files;
+                    var selectedFiles = fileInput.target.files || fileInput.dataTransfer.files;
+                    for (var i = 0, j = selectedFiles.length; i < j; i++) {
+                        this._filesToUpload.push(selectedFiles[i]);
+                    }
                     for (var i = 0, f = void 0; f = this._filesToUpload[i]; i++) {
                         var fileDetails = { 'name': f.name, 'size': ((f.size) / 1024 / 1024).toFixed(3) };
                         this.filesToUploadDetails.push(fileDetails);
                     }
                 };
+                AppComponent.prototype.removeCasefile = function (index) {
+                    this._filesToUpload.splice(index, 1);
+                    this.filesToUploadDetails.splice(index, 1);
+                };
+                AppComponent.prototype.updateSalutationControlValue = function (value) {
+                    this.salutation.updateValue(value);
+                };
+                AppComponent.prototype.clearForm = function () {
+                    var _this = this;
+                    // reset the form
+                    this.active = false;
+                    setTimeout(function () { _this.notready = false; _this.active = true; }, 1000);
+                };
                 AppComponent.prototype.onSubmit = function (newrequest) {
+                    // check if the submitter is a bot or a human
+                    // a bot will fill in the test field, but a human will not because it is hidden
+                    if (document.getElementById("test").innerHTML != '') {
+                        return false;
+                    }
                     this.notready = true;
                     // ensure required fields have values
                     // TODO remove the console logging and replace with proper user notification
@@ -172,8 +252,64 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this._myCase = new case_1.Case();
                     this._myProperty = new property_1.Property(newrequest.propertygroup.street, newrequest.propertygroup.city, newrequest.propertygroup.state, newrequest.propertygroup.zipcode, newrequest.propertygroup.unit, newrequest.propertygroup.subdivision, newrequest.propertygroup.policy_number);
                     this._myRequester = new requester_1.Requester(newrequest.requestergroup.first_name, newrequest.requestergroup.last_name, newrequest.requestergroup.salutation, newrequest.requestergroup.organization, newrequest.requestergroup.email, newrequest.requestergroup.street, newrequest.requestergroup.unit, newrequest.requestergroup.city, newrequest.requestergroup.state, newrequest.requestergroup.zipcode);
-                    // send the new requester to the DB
-                    this._createRequest();
+                    // check if the property, requester, or case already exist
+                    this._getProperties(this._myProperty);
+                    if (this._foundProperties.length > 0) {
+                        this._myProperty.id = this._foundProperties[0].id;
+                    }
+                    this._getRequesters(this._myRequester);
+                    if (this._foundRequesters.length > 0) {
+                        this._myRequester.id = this._foundRequesters[0].id;
+                    }
+                    if (this._myProperty.id && this._myRequester.id) {
+                        this._getCases(this._myProperty.id, this._myRequester.id);
+                        if (this._foundCases.length > 0) {
+                            // inform the user that the request already exists and how the summary
+                            this._myCase.id = this._foundCases[0].id;
+                            this.showSummary();
+                            this.clearForm();
+                            this.alreadyExists = true;
+                            this.notready = false;
+                        }
+                        else {
+                            // send the new request to the DB
+                            this._createRequest();
+                        }
+                    }
+                };
+                AppComponent.prototype._getCases = function (propertyID, requesterID) {
+                    var _this = this;
+                    this._caseService.getCases(new http_1.URLSearchParams('property=' + propertyID + '&requester=' + requesterID))
+                        .subscribe(function (cases) {
+                        _this._foundCases = cases;
+                    }, function (error) { return console.error(error); });
+                };
+                AppComponent.prototype._getProperties = function (property) {
+                    var _this = this;
+                    this._propertyService.getProperties(new http_1.URLSearchParams('street=' + property.street
+                        + '&unit=' + property.unit
+                        + '&city=' + property.city
+                        + '&state=' + property.state
+                        + '&zipcode=' + property.zipcode))
+                        .subscribe(function (properties) {
+                        _this._foundProperties = properties;
+                    }, function (error) { return console.error(error); });
+                };
+                AppComponent.prototype._getRequesters = function (requester) {
+                    var _this = this;
+                    this._requesterService.getRequesters(new http_1.URLSearchParams('salutation=' + requester.salutation
+                        + '&first_name=' + requester.first_name
+                        + '&last_name=' + requester.last_name
+                        + '&organization=' + requester.organization
+                        + '&email=' + requester.email
+                        + '&street=' + requester.street
+                        + '&unit=' + requester.unit
+                        + '&city=' + requester.city
+                        + '&state=' + requester.state
+                        + '&zipcode=' + requester.zipcode))
+                        .subscribe(function (requesters) {
+                        _this._foundRequesters = requesters;
+                    }, function (error) { return console.error(error); });
                 };
                 AppComponent.prototype._createRequest = function () {
                     if (this._myRequester.id && this._myProperty.id) {
@@ -200,7 +336,6 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     // create the requester object, then grab its ID for the relation to the case
                     this._requesterService.createRequester(this._myRequester)
                         .subscribe(function (newrequester) {
-                        console.log(newrequester);
                         _this._myRequester = newrequester;
                         _this._assignRequesterID();
                         // create the property object, then grab its ID for the relation to the case
@@ -212,7 +347,6 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     // create the property object, then grab its ID for the relation to the case
                     this._propertyService.createProperty(this._myProperty)
                         .subscribe(function (newproperty) {
-                        console.log(newproperty);
                         _this._myProperty = newproperty;
                         _this._assignPropertyID();
                         // create the new case
@@ -224,17 +358,16 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     // create the new case
                     this._caseService.createCase(this._myCase)
                         .subscribe(function (newcase) {
-                        console.log(newcase);
                         _this._myCase = newcase;
                         _this.requestcase = _this._myCase;
                         _this.requestproperty = _this._myProperty;
                         _this.requestrequester = _this._myRequester;
-                        if (_this._filesToUpload) {
+                        if (_this._filesToUpload.length > 0) {
                             _this._callCreateCasefiles();
                         }
                         else {
-                            console.log(newcase);
                             _this.showSummary();
+                            _this.clearForm();
                             _this.notready = false;
                         }
                     }, function (error) { return console.error(error); });
@@ -244,8 +377,8 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     // create the new casefiles
                     this._casefileService.createCasefiles(this._myCase.id, this._filesToUpload)
                         .then(function (result) {
-                        console.log(result);
                         _this.showSummary();
+                        _this.clearForm();
                         _this.notready = false;
                     }, function (error) {
                         console.error(error);

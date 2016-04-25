@@ -1,23 +1,20 @@
 import {Injectable}     from 'angular2/core';
-import {Http, URLSearchParams} from 'angular2/http';
+import {Http, RequestOptions, URLSearchParams} from 'angular2/http';
+import {APP_SETTINGS}   from '../app.settings';
 
 @Injectable()
 export class CasefileService {
     constructor (private http: Http) {}
 
-    private _username = "public";
-    private _password = "public";
-
-    private _CasefilesUrl = 'http://localhost:8000/cbraservices/casefiles/';
-
     getCasefiles (searchArgs?: URLSearchParams) {
-        return this.http.get(this._CasefilesUrl, {search: searchArgs})
+        let options = new RequestOptions({ headers: APP_SETTINGS.AUTH_JSON_HEADERS, search: searchArgs });
+
+        return this.http.get(APP_SETTINGS.CASEFILES_URL, options)
             .toPromise()
             .then(res => res.json())
             .catch(this.handleError);
     }
 
-    // using xhr here instead of just Angular2's http.post because it seems to be the only thing that works for file uploads
     createCasefiles(caseid: number, files: Array<File>) {
         return new Promise((resolve, reject) => {
             for (let i = 0; i < files.length; i++) {
@@ -34,8 +31,15 @@ export class CasefileService {
                         }
                     }
                 };
-                xhr.open("POST", this._CasefilesUrl, true);
-                xhr.setRequestHeader("Authorization", "Basic " + btoa(this._username + ":" + this._password));
+                xhr.open("POST", APP_SETTINGS.CASEFILES_URL, true);
+                //xhr.setRequestHeader("Authorization", "Basic " + btoa(sessionStorage.getItem('username') + ":" + sessionStorage.getItem('password')));
+                xhr.setRequestHeader(
+                    'Authorization', 'Basic ' +
+                    btoa(
+                        (sessionStorage.getItem('username') ? sessionStorage.getItem('username') : 'public') + ':' +
+                        (sessionStorage.getItem('password') ? sessionStorage.getItem('password') : 'public')
+                    )
+                );
                 xhr.send(formData);
             }
         });

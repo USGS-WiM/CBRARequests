@@ -1,5 +1,5 @@
 import {Component}         from 'angular2/core';
-import {HTTP_PROVIDERS}    from 'angular2/http';
+import {HTTP_PROVIDERS, URLSearchParams}    from 'angular2/http';
 import {FORM_DIRECTIVES, FormBuilder, Validators, ControlGroup, Control} from 'angular2/common';
 import {Case}              from './cases/case'
 import {Property}          from './properties/property'
@@ -26,18 +26,24 @@ export class AppComponent {
     requestproperty = {};
     requestrequester = {};
     
-    private _filesToUpload: Array<File>;
+    private _filesToUpload = [];
     filesToUploadDetails: Object[] = [];
+    active = true;
     notready: Boolean = true;
     noxhr: Boolean = true;
+    alreadyExists: Boolean = true;
+    salutations: String[] = ['Mr.', 'Ms.', 'Dr.'];
 
     //private _today = new Date().toISOString().substr(0,10);
     
     private _myCase: Case;
     private _myProperty: Property;
     private _myRequester: Requester;
+    private _foundCases: Case[];
+    private _foundProperties: Property[];
+    private _foundRequesters: Requester[];
 
-    form: ControlGroup;
+    caseForm: ControlGroup;
 
     propertygroup: ControlGroup;
     pstreet: Control = new Control("", Validators.required);
@@ -70,7 +76,7 @@ export class AppComponent {
                 private _requesterService: RequesterService
                 ) {
 
-        this.form = fb.group({
+        this.caseForm = fb.group({
             propertygroup: fb.group({
                 street: this.pstreet,
                 unit: this.punit,
@@ -106,13 +112,35 @@ export class AppComponent {
         this.notready = false;
     }
 
-    hidePropertyGroup = false;
+    hideWelcome = false;
+    hideStatusLookup = true;
+    hideCaseForm = true;
+    hidePropertyGroup = true;
     hideRequesterGroup = true;
     hideCasefileGroup = true;
-    hideForm = false;
     hideSummary = true;
 
+    showStatusLookup(){
+        this.hideWelcome = true;
+        this.hideStatusLookup = false;
+        this.hideCaseForm = true;
+        this.hideSummary = true;
+    }
+
+    showCaseForm(){
+        this.hideWelcome = true;
+        this.hideStatusLookup = true;
+        this.hideCaseForm = false;
+        this.hidePropertyGroup = false;
+        this.hideRequesterGroup = true;
+        this.hideCasefileGroup = true;
+        this.hideSummary = true;
+    }
+
     showPropertyGroup(){
+        this.hideWelcome = true;
+        this.hideStatusLookup = true;
+        this.hideCaseForm = false;
         this.hidePropertyGroup = false;
         this.hideRequesterGroup = true;
         this.hideCasefileGroup = true;
@@ -120,6 +148,9 @@ export class AppComponent {
     }
 
     showRequesterGroup(){
+        this.hideWelcome = true;
+        this.hideStatusLookup = true;
+        this.hideCaseForm = false;
         this.hidePropertyGroup = true;
         this.hideRequesterGroup = false;
         this.hideCasefileGroup = true;
@@ -127,6 +158,9 @@ export class AppComponent {
     }
 
     showCasefileGroup(){
+        this.hideWelcome = true;
+        this.hideStatusLookup = true;
+        this.hideCaseForm = false;
         this.hidePropertyGroup = true;
         this.hideRequesterGroup = true;
         this.hideCasefileGroup = false;
@@ -134,26 +168,84 @@ export class AppComponent {
     }
 
     showSummary() {
-        this.hideForm = true;
+        this.hideWelcome = true;
+        this.hideStatusLookup = true;
+        this.hideCaseForm = true;
         this.hideSummary = false;
     }
+
+    showWelcome() {
+        this.hideWelcome = false;
+        this.hideStatusLookup = true;
+        this.hideCaseForm = true;
+        this.hideSummary = true;
+    }
+    
+    getCaseStatus(caseID: string) {
+        this.notready = true;
+
+        this._caseService.getCases(new URLSearchParams('case_hash='+caseID))
+            .subscribe(
+                acase => {
+                    this._myCase = acase[0];
+                    this.requestcase = this._myCase;
+                    document.getElementById("case_id").innerHTML = '';
+                    this.showSummary();
+                    this.notready = false;
+                },
+                error =>  console.error(<any>error));
+    }
+
+    fillNFIP() {
+        let nfip = this._requesterService.getRequesters(new URLSearchParams('organization=NFIP'))
+            .subscribe(
+                requester => {
+                    this._myRequester = requester[0];
+                    // TODO: populate requester controls
+                },
+                error =>  console.error(<any>error));
+    };
 
     fileDragHover(fileInput) {
         fileInput.stopPropagation();
         fileInput.preventDefault();
-        fileInput.target.className = (fileInput.type == "dragover" ? "hover" : "");
+        //fileInput.target.className = (fileInput.type == "dragover" ? "hover" : "");
     }
 
     fileSelectHandler(fileInput: any){
         this.fileDragHover(fileInput);
-        this._filesToUpload = <Array<File>> fileInput.target.files || fileInput.dataTransfer.files;
+        let selectedFiles = <Array<File>> fileInput.target.files || fileInput.dataTransfer.files;
+        for (let i = 0, j = selectedFiles.length; i < j; i++) {
+            this._filesToUpload.push(selectedFiles[i]);
+        }
         for (let i = 0, f; f = this._filesToUpload[i]; i++) {
             let fileDetails = {'name': f.name, 'size': ((f.size)/1024/1024).toFixed(3)};
             this.filesToUploadDetails.push(fileDetails);
         }
     }
 
+    removeCasefile(index: number) {
+        this._filesToUpload.splice(index, 1);
+        this.filesToUploadDetails.splice(index, 1);
+    }
+
+    updateSalutationControlValue(value) {
+        this.salutation.updateValue(value);
+    }
+
+    clearForm() {
+        // reset the form
+        this.active = false;
+        setTimeout(()=> { this.notready = false; this.active=true; }, 1000);
+    }
+
     onSubmit (newrequest) {
+
+        // check if the submitter is a bot or a human
+        // a bot will fill in the test field, but a human will not because it is hidden
+        if (document.getElementById("test").innerHTML != '') {
+            return false;
+        }
 
         this.notready = true;
 
@@ -165,8 +257,8 @@ export class AppComponent {
             {console.log("Warning: couldn't find the requester first name and/or last name"); return;}
 
         // ensure no fields are null (use empty strings if null)
-        for (var group in newrequest) {
-            for (var key in group) {
+        for (let group in newrequest) {
+            for (let key in group) {
                 if (!newrequest[key]) {
                     newrequest[key] = "";
                 }
@@ -185,8 +277,72 @@ export class AppComponent {
             newrequest.requestergroup.email, newrequest.requestergroup.street, newrequest.requestergroup.unit,
             newrequest.requestergroup.city, newrequest.requestergroup.state, newrequest.requestergroup.zipcode);
 
-        // send the new requester to the DB
-        this._createRequest();
+        // check if the property, requester, or case already exist
+        this._getProperties(this._myProperty);
+        if (this._foundProperties.length > 0) {this._myProperty.id = this._foundProperties[0].id;}
+        this._getRequesters(this._myRequester);
+        if (this._foundRequesters.length > 0) {this._myRequester.id = this._foundRequesters[0].id;}
+        if (this._myProperty.id && this._myRequester.id) {
+            this._getCases(this._myProperty.id, this._myRequester.id);
+            if (this._foundCases.length > 0) {
+                // inform the user that the request already exists and how the summary
+                this._myCase.id = this._foundCases[0].id;
+                this.showSummary();
+                this.clearForm();
+                this.alreadyExists = true;
+                this.notready = false;
+            }
+            else {
+                // send the new request to the DB
+                this._createRequest();}
+        }
+
+    }
+
+    private _getCases(propertyID: number, requesterID: number) {
+        this._caseService.getCases(new URLSearchParams('property='+propertyID+'&requester='+requesterID))
+            .subscribe(
+                cases => {
+                    this._foundCases = cases;
+                },
+                error => console.error(<any>error));
+    }
+
+    private _getProperties(property: Property) {
+        this._propertyService.getProperties(
+            new URLSearchParams(
+                'street='+property.street
+                +'&unit='+property.unit
+                +'&city='+property.city
+                +'&state='+property.state
+                +'&zipcode='+property.zipcode
+            ))
+            .subscribe(
+                properties => {
+                    this._foundProperties = properties;
+                },
+                error => console.error(<any>error));
+    }
+
+    private _getRequesters(requester: Requester) {
+        this._requesterService.getRequesters(
+            new URLSearchParams(
+                'salutation='+requester.salutation
+                +'&first_name='+requester.first_name
+                +'&last_name='+requester.last_name
+                +'&organization='+requester.organization
+                +'&email='+requester.email
+                +'&street='+requester.street
+                +'&unit='+requester.unit
+                +'&city='+requester.city
+                +'&state='+requester.state
+                +'&zipcode='+requester.zipcode
+            ))
+            .subscribe(
+                requesters => {
+                    this._foundRequesters = requesters;
+                },
+                error => console.error(<any>error));
     }
     
     private _createRequest () {
@@ -217,7 +373,6 @@ export class AppComponent {
         this._requesterService.createRequester(this._myRequester)
             .subscribe(
                 newrequester => {
-                    console.log(newrequester);
                     this._myRequester = newrequester;
                     this._assignRequesterID();
                     // create the property object, then grab its ID for the relation to the case
@@ -231,7 +386,6 @@ export class AppComponent {
         this._propertyService.createProperty(this._myProperty)
             .subscribe(
                 newproperty => {
-                    console.log(newproperty);
                     this._myProperty = newproperty;
                     this._assignPropertyID();
                     // create the new case
@@ -245,17 +399,16 @@ export class AppComponent {
         this._caseService.createCase(this._myCase)
             .subscribe(
                 newcase => {
-                    console.log(newcase);
                     this._myCase = newcase;
                     this.requestcase = this._myCase;
                     this.requestproperty = this._myProperty;
                     this.requestrequester = this._myRequester;
-                    if (this._filesToUpload) {
+                    if (this._filesToUpload.length > 0) {
                         this._callCreateCasefiles();
                     }
                     else {
-                        console.log(newcase);
                         this.showSummary();
+                        this.clearForm();
                         this.notready = false;
                     }
                 },
@@ -268,8 +421,8 @@ export class AppComponent {
         this._casefileService.createCasefiles(this._myCase.id, this._filesToUpload)
             .then(
                 (result) => {
-                    console.log(result);
                     this.showSummary();
+                    this.clearForm();
                     this.notready = false;
                 },
                 (error) => {
