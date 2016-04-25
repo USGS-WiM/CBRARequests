@@ -11,6 +11,20 @@ body{
     color: transparent;
 }
 
+*{
+    outline: none !important;
+}
+*:hover{
+    outline: none!important;
+}
+*:focus {
+  outline-color: transparent;
+  outline-style: none;
+}
+*:active{
+    outline: none !important;
+}
+
 #filedrag
 {
 	font-weight: bold;
@@ -95,8 +109,10 @@ body{
     color: rgba(0,0,30,0.35);
 }
 
-.cbra-form input{
+.cbra-form input,
+.cbra-form select{
     display: block;
+    outline: none;
     width: 100%;
     font-family: 'Open Sans', sans-serif;
     font-weight: bolder;
@@ -104,19 +120,26 @@ body{
     padding: 10px 8px;
     border-radius: 3px;
     border: 1px solid #e2e2e2;
+    background-color: #FFF;
     margin: 0 0 12px 0;
     color: @black;
     transition: 0.15s;
 }
-.cbra-form input:hover{
+.cbra-form input:hover,
+.cbra-form select:hover{
     background-color: #fcfcfc;
     transition: 0.15s;
 }
-.cbra-form input:focus{
+.cbra-form input:focus,
+.cbra-form select:focus{
     background-color: #fcfcfc;
     transition: 0.15s;
     outline: none;
     border: 1px solid #0089e5;
+}
+.cbra-form select{
+    height: 40px;
+    border-radius: 3px !important;
 }
 .ng-valid[required] {
   border-left: 5px solid #a94442 !important; /* green */

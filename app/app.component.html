@@ -71,11 +71,11 @@
                     <h2 class="form-group-header">Requester Information</h2>
 
 
-                    
+
                     <!-- <button type="button" (click)="fillNFIP()" class="btn btn-default nav-ctrl-btn">NFIP</button> -->
 
                     <label for="salutation">Salutation</label>
-                    <select id="salutation" class="form-control"  ngControl="salutation" (change)="updateSalutationControlValue(newSalutation.value)" #newSalutation>
+                    <select id="salutation"  ngControl="salutation" (change)="updateSalutationControlValue(newSalutation.value)" #newSalutation>
                         <option value=""></option>
                         <option *ngFor="#salutation of salutations" [value]="salutation">{{salutation}}</option>
                     </select>
