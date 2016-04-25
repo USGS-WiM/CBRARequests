@@ -101,10 +101,11 @@ body{
     font-family: 'Open Sans', sans-serif;
     font-weight: bolder;
     box-sizing: border-box;
-    padding: 17px 5px;
+    padding: 10px 8px;
     border-radius: 3px;
     border: 1px solid #e2e2e2;
     margin: 0 0 12px 0;
+    color: @black;
     transition: 0.15s;
 }
 .cbra-form input:hover{
