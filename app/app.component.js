@@ -112,7 +112,7 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                             casefiles: this.casefiles
                         })
                     });
-                    // check of the browser supports XHR2, which allows file drag and drop
+                    // check if the browser supports XHR2, which allows file drag and drop
                     var xhr = new XMLHttpRequest();
                     if (xhr.upload) {
                         this.noxhr = false;
