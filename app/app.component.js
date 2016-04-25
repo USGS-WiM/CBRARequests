@@ -59,7 +59,7 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this.active = true;
                     this.notready = true;
                     this.noxhr = true;
-                    this.alreadyExists = true;
+                    this.alreadyExists = false;
                     this.salutations = ['Mr.', 'Ms.', 'Dr.'];
                     this.pstreet = new common_1.Control("", common_1.Validators.required);
                     this.punit = new common_1.Control("");
@@ -112,7 +112,7 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                             casefiles: this.casefiles
                         })
                     });
-                    // check of the browser supports XHR2, which allows file drag and drop
+                    // check if the browser supports XHR2, which allows file drag and drop
                     var xhr = new XMLHttpRequest();
                     if (xhr.upload) {
                         this.noxhr = false;
@@ -254,34 +254,23 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this._myRequester = new requester_1.Requester(newrequest.requestergroup.first_name, newrequest.requestergroup.last_name, newrequest.requestergroup.salutation, newrequest.requestergroup.organization, newrequest.requestergroup.email, newrequest.requestergroup.street, newrequest.requestergroup.unit, newrequest.requestergroup.city, newrequest.requestergroup.state, newrequest.requestergroup.zipcode);
                     // check if the property, requester, or case already exist
                     this._getProperties(this._myProperty);
-                    if (this._foundProperties.length > 0) {
-                        this._myProperty.id = this._foundProperties[0].id;
-                    }
-                    this._getRequesters(this._myRequester);
-                    if (this._foundRequesters.length > 0) {
-                        this._myRequester.id = this._foundRequesters[0].id;
-                    }
-                    if (this._myProperty.id && this._myRequester.id) {
-                        this._getCases(this._myProperty.id, this._myRequester.id);
-                        if (this._foundCases.length > 0) {
-                            // inform the user that the request already exists and how the summary
-                            this._myCase.id = this._foundCases[0].id;
-                            this.showSummary();
-                            this.clearForm();
-                            this.alreadyExists = true;
-                            this.notready = false;
-                        }
-                        else {
-                            // send the new request to the DB
-                            this._createRequest();
-                        }
-                    }
                 };
                 AppComponent.prototype._getCases = function (propertyID, requesterID) {
                     var _this = this;
                     this._caseService.getCases(new http_1.URLSearchParams('property=' + propertyID + '&requester=' + requesterID))
                         .subscribe(function (cases) {
-                        _this._foundCases = cases;
+                        if (cases.length > 0) {
+                            // inform the user that the request already exists and how the summary
+                            _this._myCase.id = cases[0].id;
+                            _this.showSummary();
+                            _this.clearForm();
+                            _this.alreadyExists = true;
+                            _this.notready = false;
+                        }
+                        else {
+                            // send the new request to the DB
+                            _this._createRequest();
+                        }
                     }, function (error) { return console.error(error); });
                 };
                 AppComponent.prototype._getProperties = function (property) {
@@ -292,7 +281,10 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                         + '&state=' + property.state
                         + '&zipcode=' + property.zipcode))
                         .subscribe(function (properties) {
-                        _this._foundProperties = properties;
+                        if (properties.length > 0) {
+                            _this._myProperty.id = properties[0].id;
+                        }
+                        _this._getRequesters(_this._myRequester);
                     }, function (error) { return console.error(error); });
                 };
                 AppComponent.prototype._getRequesters = function (requester) {
@@ -308,7 +300,16 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                         + '&state=' + requester.state
                         + '&zipcode=' + requester.zipcode))
                         .subscribe(function (requesters) {
-                        _this._foundRequesters = requesters;
+                        if (requesters.length > 0) {
+                            _this._myRequester.id = requesters[0].id;
+                        }
+                        if (_this._myProperty.id && _this._myRequester.id) {
+                            _this._getCases(_this._myProperty.id, _this._myRequester.id);
+                        }
+                        else {
+                            // send the new request to the DB
+                            _this._createRequest();
+                        }
                     }, function (error) { return console.error(error); });
                 };
                 AppComponent.prototype._createRequest = function () {

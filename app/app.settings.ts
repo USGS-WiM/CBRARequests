@@ -3,8 +3,8 @@ import {Headers} from 'angular2/http';
 
 @Injectable()
 export class APP_SETTINGS {
-    //private static _API_ENDPOINT: string = 'http://localhost:8000/cbraservices/';
-    private static _API_ENDPOINT: string = 'http://' + window.location.hostname + '/cbra/cbraservices/';
+    private static _API_ENDPOINT: string = 'http://localhost:8000/cbraservices/';
+    //private static _API_ENDPOINT: string = 'http://' + window.location.hostname + '/cbra/cbraservices/';
 
     public static get AUTH_URL(): string { return this._API_ENDPOINT+'auth/' };
     public static get CASES_URL(): string { return this._API_ENDPOINT+'cases/' };
