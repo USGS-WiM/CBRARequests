@@ -138,6 +138,18 @@ System.register(['angular2/core', 'angular2/http'], function(exports_1, context_
                     configurable: true
                 });
                 ;
+                Object.defineProperty(APP_SETTINGS, "SALUTATIONS", {
+                    get: function () { return ['Mr.', 'Ms.', 'Dr.']; },
+                    enumerable: true,
+                    configurable: true
+                });
+                ;
+                Object.defineProperty(APP_SETTINGS, "US_STATES", {
+                    get: function () { return ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"]; },
+                    enumerable: true,
+                    configurable: true
+                });
+                ;
                 //private static _API_ENDPOINT: string = 'http://localhost:8000/cbraservices/';
                 APP_SETTINGS._API_ENDPOINT = 'http://' + window.location.hostname + '/cbra/cbraservices/';
                 APP_SETTINGS = __decorate([
