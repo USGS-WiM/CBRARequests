@@ -1,4 +1,4 @@
-System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/case', './properties/property', './requesters/requester', './cases/case.service', './casefiles/casefile.service', './properties/property.service', './requesters/requester.service'], function(exports_1, context_1) {
+System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/case', './properties/property', './requesters/requester', './cases/case.service', './casefiles/casefile.service', './properties/property.service', './requesters/requester.service', './app.settings'], function(exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -10,7 +10,7 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
-    var core_1, http_1, common_1, case_1, property_1, requester_1, case_service_1, casefile_service_1, property_service_1, requester_service_1;
+    var core_1, http_1, common_1, case_1, property_1, requester_1, case_service_1, casefile_service_1, property_service_1, requester_service_1, app_settings_1;
     var AppComponent;
     return {
         setters:[
@@ -43,6 +43,9 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
             },
             function (requester_service_1_1) {
                 requester_service_1 = requester_service_1_1;
+            },
+            function (app_settings_1_1) {
+                app_settings_1 = app_settings_1_1;
             }],
         execute: function() {
             AppComponent = (function () {
@@ -60,7 +63,8 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this.notready = true;
                     this.noxhr = true;
                     this.alreadyExists = false;
-                    this.salutations = ['Mr.', 'Ms.', 'Dr.'];
+                    this.salutations = app_settings_1.APP_SETTINGS.SALUTATIONS;
+                    this.states = app_settings_1.APP_SETTINGS.US_STATES;
                     this.pstreet = new common_1.Control("", common_1.Validators.required);
                     this.punit = new common_1.Control("");
                     this.pcity = new common_1.Control("", common_1.Validators.required);

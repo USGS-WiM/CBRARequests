@@ -8,6 +8,7 @@ import {CaseService}       from './cases/case.service';
 import {CasefileService}   from './casefiles/casefile.service';
 import {PropertyService}   from './properties/property.service';
 import {RequesterService}  from './requesters/requester.service';
+import {APP_SETTINGS}      from './app.settings';
 
 @Component({
     selector: 'my-app',
@@ -32,7 +33,8 @@ export class AppComponent {
     notready: Boolean = true;
     noxhr: Boolean = true;
     alreadyExists: Boolean = false;
-    salutations: String[] = ['Mr.', 'Ms.', 'Dr.'];
+    salutations: string[] = APP_SETTINGS.SALUTATIONS;
+    states: string[] = APP_SETTINGS.US_STATES;
 
     //private _today = new Date().toISOString().substr(0,10);
     
