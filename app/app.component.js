@@ -1,4 +1,4 @@
-System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/case', './properties/property', './requesters/requester', './cases/case.service', './casefiles/casefile.service', './properties/property.service', './requesters/requester.service', './app.settings'], function(exports_1, context_1) {
+System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/case', './properties/property', './requesters/requester', './comments/comment', './cases/case.service', './casefiles/casefile.service', './properties/property.service', './requesters/requester.service', './comments/comment.service', './app.settings'], function(exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -10,7 +10,7 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
-    var core_1, http_1, common_1, case_1, property_1, requester_1, case_service_1, casefile_service_1, property_service_1, requester_service_1, app_settings_1;
+    var core_1, http_1, common_1, case_1, property_1, requester_1, comment_1, case_service_1, casefile_service_1, property_service_1, requester_service_1, comment_service_1, app_settings_1;
     var AppComponent;
     return {
         setters:[
@@ -32,6 +32,9 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
             function (requester_1_1) {
                 requester_1 = requester_1_1;
             },
+            function (comment_1_1) {
+                comment_1 = comment_1_1;
+            },
             function (case_service_1_1) {
                 case_service_1 = case_service_1_1;
             },
@@ -44,16 +47,20 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
             function (requester_service_1_1) {
                 requester_service_1 = requester_service_1_1;
             },
+            function (comment_service_1_1) {
+                comment_service_1 = comment_service_1_1;
+            },
             function (app_settings_1_1) {
                 app_settings_1 = app_settings_1_1;
             }],
         execute: function() {
             AppComponent = (function () {
-                function AppComponent(fb, _caseService, _casefileService, _propertyService, _requesterService) {
+                function AppComponent(fb, _caseService, _casefileService, _propertyService, _requesterService, _commentService) {
                     this._caseService = _caseService;
                     this._casefileService = _casefileService;
                     this._propertyService = _propertyService;
                     this._requesterService = _requesterService;
+                    this._commentService = _commentService;
                     this.requestcase = {};
                     this.requestproperty = {};
                     this.requestrequester = {};
@@ -63,6 +70,7 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this.notready = true;
                     this.noxhr = true;
                     this.alreadyExists = false;
+                    this.fileUploadError = false;
                     this.salutations = app_settings_1.APP_SETTINGS.SALUTATIONS;
                     this.states = app_settings_1.APP_SETTINGS.US_STATES;
                     this.pstreet = new common_1.Control("", common_1.Validators.required);
@@ -210,7 +218,7 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                         this._filesToUpload.push(selectedFiles[i]);
                     }
                     for (var i = 0, f = void 0; f = this._filesToUpload[i]; i++) {
-                        var fileDetails = { 'name': f.name, 'size': ((f.size) / 1024 / 1024).toFixed(3) };
+                        var fileDetails = { 'name': f.name, 'size': ((f.size) / 1024 / 1024).toFixed(3), 'type': f.type };
                         this.filesToUploadDetails.push(fileDetails);
                     }
                 };
@@ -382,12 +390,31 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     // create the new casefiles
                     this._casefileService.createCasefiles(this._myCase.id, this._filesToUpload)
                         .then(function (result) {
+                        _this.fileUploadError = false;
                         _this.showSummary();
                         _this.clearForm();
                         _this.notready = false;
                     }, function (error) {
+                        _this.fileUploadError = true;
+                        var newcomment = "During the initial request the file upload failed. The Requester attempted to upload the following files:\n";
+                        for (var i = 0, j = _this.filesToUploadDetails.length; i < j; i++) {
+                            newcomment += i + ". " + _this.filesToUploadDetails[i]['name']
+                                + ": " + _this.filesToUploadDetails[i]['size'] + " MBs "
+                                + "(" + _this.filesToUploadDetails[i]['type'] + ")\n";
+                        }
+                        _this._addComment(newcomment);
+                        _this.showSummary();
+                        _this.clearForm();
+                        _this.notready = false;
                         console.error(error);
                     });
+                };
+                AppComponent.prototype._addComment = function (newcomment) {
+                    if (!newcomment) {
+                        return;
+                    }
+                    this._commentService.createComment(new comment_1.Comment(this._myCase.id, newcomment))
+                        .subscribe(function (comment) { return console.log(comment); }, function (error) { return console.error(error); });
                 };
                 AppComponent = __decorate([
                     core_1.Component({
@@ -401,7 +428,7 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                             case_service_1.CaseService,
                             casefile_service_1.CasefileService]
                     }), 
-                    __metadata('design:paramtypes', [common_1.FormBuilder, case_service_1.CaseService, casefile_service_1.CasefileService, property_service_1.PropertyService, requester_service_1.RequesterService])
+                    __metadata('design:paramtypes', [common_1.FormBuilder, case_service_1.CaseService, casefile_service_1.CasefileService, property_service_1.PropertyService, requester_service_1.RequesterService, comment_service_1.CommentService])
                 ], AppComponent);
                 return AppComponent;
             }());

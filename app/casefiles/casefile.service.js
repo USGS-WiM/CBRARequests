@@ -33,11 +33,12 @@ System.register(['angular2/core', 'angular2/http', '../app.settings'], function(
                     return this.http.get(app_settings_1.APP_SETTINGS.CASEFILES_URL, options)
                         .toPromise()
                         .then(function (res) { return res.json(); })
-                        .catch(this.handleError);
+                        .catch(this._handleError);
                 };
                 CasefileService.prototype.createCasefiles = function (caseid, files) {
                     return new Promise(function (resolve, reject) {
                         var _loop_1 = function(i) {
+                            //let contentType = files[i].type;
                             var formData = new FormData();
                             formData.append("case", caseid);
                             formData.append("file", files[i]);
@@ -53,6 +54,7 @@ System.register(['angular2/core', 'angular2/http', '../app.settings'], function(
                                 }
                             };
                             xhr.open("POST", app_settings_1.APP_SETTINGS.CASEFILES_URL, true);
+                            //xhr.setRequestHeader("Content-Type", contentType);
                             //xhr.setRequestHeader("Authorization", "Basic " + btoa(sessionStorage.getItem('username') + ":" + sessionStorage.getItem('password')));
                             xhr.setRequestHeader('Authorization', 'Basic ' +
                                 btoa((sessionStorage.getItem('username') ? sessionStorage.getItem('username') : 'public') + ':' +
@@ -64,7 +66,7 @@ System.register(['angular2/core', 'angular2/http', '../app.settings'], function(
                         }
                     });
                 };
-                CasefileService.prototype.handleError = function (error) {
+                CasefileService.prototype._handleError = function (error) {
                     // TODO figure out a better error handler
                     // in a real world app, we may send the server to some remote logging infrastructure
                     // instead of just logging it to the console
