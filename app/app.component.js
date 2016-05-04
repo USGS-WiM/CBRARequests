@@ -69,15 +69,21 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this.active = true;
                     this.notready = true;
                     this.noxhr = true;
+                    this.createNew = false;
                     this.alreadyExists = false;
                     this.fileUploadError = false;
+                    this.fileTypeInvalid = false;
+                    this.fileSizeInvalid = false;
+                    this.invalidFile = "";
+                    this.invalidType = "";
+                    this.fileUploadMessages = "";
                     this.salutations = app_settings_1.APP_SETTINGS.SALUTATIONS;
                     this.states = app_settings_1.APP_SETTINGS.US_STATES;
                     this.pstreet = new common_1.Control("", common_1.Validators.required);
                     this.punit = new common_1.Control("");
                     this.pcity = new common_1.Control("", common_1.Validators.required);
                     this.pstate = new common_1.Control("");
-                    this.pzipcode = new common_1.Control("");
+                    this.pzipcode = new common_1.Control("", common_1.Validators.maxLength(5));
                     this.subdivision = new common_1.Control("");
                     this.policy_number = new common_1.Control("");
                     this.salutation = new common_1.Control("");
@@ -89,7 +95,7 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this.runit = new common_1.Control("");
                     this.rcity = new common_1.Control("");
                     this.rstate = new common_1.Control("");
-                    this.rzipcode = new common_1.Control("");
+                    this.rzipcode = new common_1.Control("", common_1.Validators.maxLength(5));
                     this.casefiles = new common_1.Control("");
                     this.hideWelcome = false;
                     this.hideStatusLookup = true;
@@ -215,7 +221,28 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this.fileDragHover(fileInput);
                     var selectedFiles = fileInput.target.files || fileInput.dataTransfer.files;
                     for (var i = 0, j = selectedFiles.length; i < j; i++) {
-                        this._filesToUpload.push(selectedFiles[i]);
+                        var selectedFile = selectedFiles[i];
+                        if (app_settings_1.APP_SETTINGS.CONTENT_TYPES.indexOf(selectedFile.type) > -1) {
+                            if (selectedFiles[i].size > app_settings_1.APP_SETTINGS.MAX_UPLOAD_SIZE) {
+                                this._filesToUpload.push(selectedFile);
+                            }
+                            else {
+                                for (var k = 0; k < i; k++) {
+                                    this._filesToUpload.pop();
+                                }
+                                this.invalidSize = selectedFile.size;
+                                this.invalidFile = selectedFile.name;
+                                this.fileSizeInvalid = true;
+                            }
+                        }
+                        else {
+                            for (var k = 0; k < i; k++) {
+                                this._filesToUpload.pop();
+                            }
+                            this.invalidType = selectedFile.type;
+                            this.invalidFile = selectedFile.name;
+                            this.fileTypeInvalid = true;
+                        }
                     }
                     for (var i = 0, f = void 0; f = this._filesToUpload[i]; i++) {
                         var fileDetails = { 'name': f.name, 'size': ((f.size) / 1024 / 1024).toFixed(3), 'type': f.type };
@@ -235,7 +262,20 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this.active = false;
                     setTimeout(function () { _this.notready = false; _this.active = true; }, 1000);
                 };
-                AppComponent.prototype.onSubmit = function (newrequest) {
+                AppComponent.prototype.repopulateRequester = function () {
+                    // repopulate the requester group fields
+                    this.salutation.updateValue(this._myRequester.salutation);
+                    this.first_name.updateValue(this._myRequester.first_name);
+                    this.last_name.updateValue(this._myRequester.last_name);
+                    this.organization.updateValue(this._myRequester.organization);
+                    this.email.updateValue(this._myRequester.email);
+                    this.rstreet.updateValue(this._myRequester.street);
+                    this.runit.updateValue(this._myRequester.unit);
+                    this.rcity.updateValue(this._myRequester.city);
+                    this.rstate.updateValue(this._myRequester.state);
+                    this.rzipcode.updateValue(this._myRequester.zipcode);
+                };
+                AppComponent.prototype.onSubmit = function (newrequest, createNew) {
                     // check if the submitter is a bot or a human
                     // a bot will fill in the test field, but a human will not because it is hidden
                     if (document.getElementById("test").innerHTML != '') {
@@ -379,37 +419,75 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                             _this._callCreateCasefiles();
                         }
                         else {
-                            _this.showSummary();
                             _this.clearForm();
+                            if (_this.createNew) {
+                                _this.showPropertyGroup();
+                                _this.repopulateRequester();
+                            }
+                            else {
+                                _this.showSummary();
+                            }
                             _this.notready = false;
                         }
                     }, function (error) { return console.error(error); });
                 };
+                // TODO make this iterate over the _filesToUpload array, rather than one bulk POST, for better error management
                 AppComponent.prototype._callCreateCasefiles = function () {
                     var _this = this;
                     // create the new casefiles
-                    this._casefileService.createCasefiles(this._myCase.id, this._filesToUpload)
-                        .then(function (result) {
-                        _this.fileUploadError = false;
-                        _this.showSummary();
-                        _this.clearForm();
-                        _this.notready = false;
-                    }, function (error) {
-                        _this.fileUploadError = true;
-                        var newcomment = "During the initial request the file upload failed. The Requester attempted to upload the following files:\n";
-                        for (var i = 0, j = _this.filesToUploadDetails.length; i < j; i++) {
-                            newcomment += i + ". " + _this.filesToUploadDetails[i]['name']
-                                + ": " + _this.filesToUploadDetails[i]['size'] + " MBs "
-                                + "(" + _this.filesToUploadDetails[i]['type'] + ")\n";
+                    this.fileUploadMessages = "";
+                    var errorMessages = "";
+                    var errorFiles = "";
+                    var _loop_1 = function(i) {
+                        var file = this_1._filesToUpload[i];
+                        if (app_settings_1.APP_SETTINGS.CONTENT_TYPES.indexOf(file.type) > -1) {
+                            if (file.size > app_settings_1.APP_SETTINGS.MAX_UPLOAD_SIZE) {
+                                this_1._casefileService.createCasefiles(this_1._myCase.id, file)
+                                    .then(function (result) {
+                                    // the server successfully saved the files
+                                    _this.fileUploadMessages += "SUCCESS: File uploaded. " + file.name + ".\n";
+                                }, function (error) {
+                                    // the server encountered an invalid file or an error
+                                    var message = "ERROR: File not uploaded. " + file.name + " (" + ((file.size) / 1024 / 1024).toFixed(3) + " MBs) (" + file.type + "). (REASON: " + error + ").\n";
+                                    _this.fileUploadMessages += message;
+                                    errorMessages += message;
+                                    errorFiles += file.name;
+                                });
+                            }
+                            else {
+                                this_1.fileUploadMessages += "WARNING: File not uploaded, file size too big. " + file.name + " (" + ((file.size) / 1024 / 1024).toFixed(3) + " MBs).\n";
+                            }
                         }
-                        _this._addComment(newcomment);
-                        _this.showSummary();
-                        _this.clearForm();
-                        _this.notready = false;
-                        console.error(error);
-                    });
+                        else {
+                            this_1.fileUploadMessages += "WARNING: File not uploaded, not a valid file type. " + file.name + " (" + file.type + ").\n";
+                        }
+                    };
+                    var this_1 = this;
+                    for (var i = 0; i < this._filesToUpload.length; i++) {
+                        _loop_1(i);
+                    }
+                    if (errorMessages.length > 0) {
+                        var newcomment = "During the initial request the following file(s) failed to upload:\n";
+                        newcomment += errorFiles + "\n";
+                        newcomment += "This is the collection of error messages from the failed upload attempt(s):\n";
+                        newcomment += errorMessages;
+                        this._createComment(newcomment);
+                        this.fileUploadError = true;
+                    }
+                    else {
+                        this.fileUploadError = false;
+                    }
+                    this.clearForm();
+                    if (this.createNew) {
+                        this.showPropertyGroup();
+                        this.repopulateRequester();
+                    }
+                    else {
+                        this.showSummary();
+                    }
+                    this.notready = false;
                 };
-                AppComponent.prototype._addComment = function (newcomment) {
+                AppComponent.prototype._createComment = function (newcomment) {
                     if (!newcomment) {
                         return;
                     }
@@ -426,7 +504,8 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                             property_service_1.PropertyService,
                             requester_service_1.RequesterService,
                             case_service_1.CaseService,
-                            casefile_service_1.CasefileService]
+                            casefile_service_1.CasefileService,
+                            comment_service_1.CommentService]
                     }), 
                     __metadata('design:paramtypes', [common_1.FormBuilder, case_service_1.CaseService, casefile_service_1.CasefileService, property_service_1.PropertyService, requester_service_1.RequesterService, comment_service_1.CommentService])
                 ], AppComponent);

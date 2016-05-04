@@ -38,28 +38,39 @@ System.register(['angular2/core', 'angular2/http', '../app.settings'], function(
                 CasefileService.prototype.createCasefiles = function (caseid, files) {
                     return new Promise(function (resolve, reject) {
                         var _loop_1 = function(i) {
-                            //let contentType = files[i].type;
-                            var formData = new FormData();
-                            formData.append("case", caseid);
-                            formData.append("file", files[i]);
-                            var xhr = new XMLHttpRequest();
-                            xhr.onreadystatechange = function () {
-                                if (xhr.readyState == 4) {
-                                    if (xhr.status == 201) {
-                                        resolve(JSON.parse(xhr.response));
-                                    }
-                                    else {
-                                        reject(xhr.response);
-                                    }
+                            var file = files[i];
+                            var contentType = file.type;
+                            if (app_settings_1.APP_SETTINGS.CONTENT_TYPES.indexOf(contentType) > -1) {
+                                if (file.size > app_settings_1.APP_SETTINGS.MAX_UPLOAD_SIZE) {
+                                    var formData = new FormData();
+                                    formData.append("case", caseid);
+                                    formData.append("file", file);
+                                    var xhr_1 = new XMLHttpRequest();
+                                    xhr_1.onreadystatechange = function () {
+                                        if (xhr_1.readyState == 4) {
+                                            if (xhr_1.status == 201) {
+                                                reject(JSON.parse(xhr_1.response) + "\n");
+                                            }
+                                            else {
+                                                reject(xhr_1.response);
+                                            }
+                                        }
+                                    };
+                                    xhr_1.open("POST", app_settings_1.APP_SETTINGS.CASEFILES_URL, true);
+                                    //xhr.setRequestHeader("Content-Type", contentType);
+                                    //xhr.setRequestHeader("Authorization", "Basic " + btoa(sessionStorage.getItem('username') + ":" + sessionStorage.getItem('password')));
+                                    xhr_1.setRequestHeader('Authorization', 'Basic ' +
+                                        btoa((sessionStorage.getItem('username') ? sessionStorage.getItem('username') : 'public') + ':' +
+                                            (sessionStorage.getItem('password') ? sessionStorage.getItem('password') : 'public')));
+                                    xhr_1.send(formData);
                                 }
-                            };
-                            xhr.open("POST", app_settings_1.APP_SETTINGS.CASEFILES_URL, true);
-                            //xhr.setRequestHeader("Content-Type", contentType);
-                            //xhr.setRequestHeader("Authorization", "Basic " + btoa(sessionStorage.getItem('username') + ":" + sessionStorage.getItem('password')));
-                            xhr.setRequestHeader('Authorization', 'Basic ' +
-                                btoa((sessionStorage.getItem('username') ? sessionStorage.getItem('username') : 'public') + ':' +
-                                    (sessionStorage.getItem('password') ? sessionStorage.getItem('password') : 'public')));
-                            xhr.send(formData);
+                                else {
+                                    reject("ERROR: File size too big. " + file.name + " (" + ((file.size) / 1024 / 1024).toFixed(3) + " MBs).");
+                                }
+                            }
+                            else {
+                                reject("ERROR: Not a valid file type. " + file.name + " (" + file.type + ").");
+                            }
                         };
                         for (var i = 0; i < files.length; i++) {
                             _loop_1(i);

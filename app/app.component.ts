@@ -21,7 +21,8 @@ import {APP_SETTINGS}      from './app.settings';
         PropertyService,
         RequesterService,
         CaseService,
-        CasefileService]
+        CasefileService,
+        CommentService]
 })
 export class AppComponent {
 
@@ -34,6 +35,7 @@ export class AppComponent {
     active: Boolean = true;
     notready: Boolean = true;
     noxhr: Boolean = true;
+    createNew: Boolean = false;
     alreadyExists: Boolean = false;
     fileUploadError: Boolean = false;
     fileTypeInvalid: Boolean = false;
@@ -58,7 +60,7 @@ export class AppComponent {
     punit: Control = new Control("");
     pcity: Control = new Control("", Validators.required);
     pstate: Control = new Control("");
-    pzipcode: Control = new Control("");
+    pzipcode: Control = new Control("", Validators.maxLength(5));
     subdivision: Control = new Control("");
     policy_number: Control = new Control("");
 
@@ -72,7 +74,7 @@ export class AppComponent {
     runit: Control = new Control("");
     rcity: Control = new Control("");
     rstate: Control = new Control("");
-    rzipcode: Control = new Control("");
+    rzipcode: Control = new Control("", Validators.maxLength(5));
 
     casefilegroup: ControlGroup;
     casefiles: Control = new Control("");
@@ -263,10 +265,32 @@ export class AppComponent {
         this.salutation.updateValue(value);
     }
 
+    updatePStateControlValue(value) {
+        this.pstate.updateValue(value);
+    }
+
+    updateRStateControlValue(value) {
+        this.rstate.updateValue(value);
+    }
+
     clearForm() {
         // reset the form
         this.active = false;
         setTimeout(()=> { this.notready = false; this.active=true; }, 1000);
+    }
+
+    repopulateRequester() {
+        // repopulate the requester group fields
+        this.salutation.updateValue(this._myRequester.salutation);
+        this.first_name.updateValue(this._myRequester.first_name);
+        this.last_name.updateValue(this._myRequester.last_name);
+        this.organization.updateValue(this._myRequester.organization);
+        this.email.updateValue(this._myRequester.email);
+        this.rstreet.updateValue(this._myRequester.street);
+        this.runit.updateValue(this._myRequester.unit);
+        this.rcity.updateValue(this._myRequester.city);
+        this.rstate.updateValue(this._myRequester.state);
+        this.rzipcode.updateValue(this._myRequester.zipcode);
     }
 
     onSubmit (newrequest) {
@@ -439,8 +463,8 @@ export class AppComponent {
                         this._callCreateCasefiles();
                     }
                     else {
-                        this.showSummary();
                         this.clearForm();
+                        if (this.createNew) {this.showPropertyGroup();  this.repopulateRequester();} else {this.showSummary();}
                         this.notready = false;
                     }
                 },
@@ -492,8 +516,8 @@ export class AppComponent {
         else {
             this.fileUploadError = false;
         }
-        this.showSummary();
         this.clearForm();
+        if (this.createNew) {this.showPropertyGroup(); this.repopulateRequester();} else {this.showSummary();}
         this.notready = false;
     }
 
