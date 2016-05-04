@@ -36,5 +36,7 @@ export class APP_SETTINGS {
 
     public static get SALUTATIONS(): string[] { return ['Mr.', 'Ms.', 'Dr.'] };
     public static get US_STATES(): string[] { return ["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"] };
+    public static get CONTENT_TYPES(): string[] { return ["application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document","application/pdf", "text/plain", "image/jpeg", "image/png", "image/gif", "image/tiff", "image/bmp", "application/zip", "application/x-bzip", "application/x-bzip2"] };
+    public static get MAX_UPLOAD_SIZE(): number { return 2621440 };
 
 }

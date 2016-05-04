@@ -150,6 +150,18 @@ System.register(['angular2/core', 'angular2/http'], function(exports_1, context_
                     configurable: true
                 });
                 ;
+                Object.defineProperty(APP_SETTINGS, "CONTENT_TYPES", {
+                    get: function () { return ["application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/pdf", "text/plain", "image/jpeg", "image/png", "image/gif", "image/tiff", "image/bmp", "application/zip", "application/x-bzip", "application/x-bzip2"]; },
+                    enumerable: true,
+                    configurable: true
+                });
+                ;
+                Object.defineProperty(APP_SETTINGS, "MAX_UPLOAD_SIZE", {
+                    get: function () { return 2621440; },
+                    enumerable: true,
+                    configurable: true
+                });
+                ;
                 //private static _API_ENDPOINT: string = 'http://localhost:8000/cbraservices/';
                 APP_SETTINGS._API_ENDPOINT = 'http://' + window.location.hostname + '/cbra/cbraservices/';
                 APP_SETTINGS = __decorate([

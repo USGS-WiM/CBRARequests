@@ -4,10 +4,12 @@ import {FORM_DIRECTIVES, FormBuilder, Validators, ControlGroup, Control} from 'a
 import {Case}              from './cases/case'
 import {Property}          from './properties/property'
 import {Requester}         from './requesters/requester';
+import {Comment}           from './comments/comment';
 import {CaseService}       from './cases/case.service';
 import {CasefileService}   from './casefiles/casefile.service';
 import {PropertyService}   from './properties/property.service';
 import {RequesterService}  from './requesters/requester.service';
+import {CommentService}    from './comments/comment.service';
 import {APP_SETTINGS}      from './app.settings';
 
 @Component({
@@ -19,7 +21,8 @@ import {APP_SETTINGS}      from './app.settings';
         PropertyService,
         RequesterService,
         CaseService,
-        CasefileService]
+        CasefileService,
+        CommentService]
 })
 export class AppComponent {
 
@@ -29,10 +32,18 @@ export class AppComponent {
     
     private _filesToUpload = [];
     filesToUploadDetails: Object[] = [];
-    active = true;
+    active: Boolean = true;
     notready: Boolean = true;
     noxhr: Boolean = true;
+    createNew: Boolean = false;
     alreadyExists: Boolean = false;
+    fileUploadError: Boolean = false;
+    fileTypeInvalid: Boolean = false;
+    fileSizeInvalid: Boolean = false;
+    invalidFile: string = "";
+    invalidType: string = "";
+    invalidSize: number;
+    fileUploadMessages: string = "";
     salutations: string[] = APP_SETTINGS.SALUTATIONS;
     states: string[] = APP_SETTINGS.US_STATES;
 
@@ -49,7 +60,7 @@ export class AppComponent {
     punit: Control = new Control("");
     pcity: Control = new Control("", Validators.required);
     pstate: Control = new Control("");
-    pzipcode: Control = new Control("");
+    pzipcode: Control = new Control("", Validators.maxLength(5));
     subdivision: Control = new Control("");
     policy_number: Control = new Control("");
 
@@ -63,7 +74,7 @@ export class AppComponent {
     runit: Control = new Control("");
     rcity: Control = new Control("");
     rstate: Control = new Control("");
-    rzipcode: Control = new Control("");
+    rzipcode: Control = new Control("", Validators.maxLength(5));
 
     casefilegroup: ControlGroup;
     casefiles: Control = new Control("");
@@ -72,7 +83,8 @@ export class AppComponent {
                 private _caseService: CaseService,
                 private _casefileService: CasefileService,
                 private _propertyService: PropertyService,
-                private _requesterService: RequesterService
+                private _requesterService: RequesterService,
+                private _commentService: CommentService
                 ) {
 
         this.caseForm = fb.group({
@@ -215,10 +227,31 @@ export class AppComponent {
         this.fileDragHover(fileInput);
         let selectedFiles = <Array<File>> fileInput.target.files || fileInput.dataTransfer.files;
         for (let i = 0, j = selectedFiles.length; i < j; i++) {
-            this._filesToUpload.push(selectedFiles[i]);
+            let selectedFile = selectedFiles[i];
+            if (APP_SETTINGS.CONTENT_TYPES.indexOf(selectedFile.type) > -1) {
+                if (selectedFiles[i].size > APP_SETTINGS.MAX_UPLOAD_SIZE) {
+                    this._filesToUpload.push(selectedFile);
+                }
+                else {
+                    for (let k = 0; k < i; k++) {
+                        this._filesToUpload.pop();
+                    }
+                    this.invalidSize = selectedFile.size;
+                    this.invalidFile = selectedFile.name;
+                    this.fileSizeInvalid = true;
+                }
+            }
+            else {
+                for (let k = 0; k < i; k++) {
+                    this._filesToUpload.pop();
+                }
+                this.invalidType = selectedFile.type;
+                this.invalidFile = selectedFile.name;
+                this.fileTypeInvalid = true;
+            }
         }
         for (let i = 0, f; f = this._filesToUpload[i]; i++) {
-            let fileDetails = {'name': f.name, 'size': ((f.size)/1024/1024).toFixed(3)};
+            let fileDetails = {'name': f.name, 'size': ((f.size)/1024/1024).toFixed(3), 'type': f.type};
             this.filesToUploadDetails.push(fileDetails);
         }
     }
@@ -232,10 +265,32 @@ export class AppComponent {
         this.salutation.updateValue(value);
     }
 
+    updatePStateControlValue(value) {
+        this.pstate.updateValue(value);
+    }
+
+    updateRStateControlValue(value) {
+        this.rstate.updateValue(value);
+    }
+
     clearForm() {
         // reset the form
         this.active = false;
         setTimeout(()=> { this.notready = false; this.active=true; }, 1000);
+    }
+
+    repopulateRequester() {
+        // repopulate the requester group fields
+        this.salutation.updateValue(this._myRequester.salutation);
+        this.first_name.updateValue(this._myRequester.first_name);
+        this.last_name.updateValue(this._myRequester.last_name);
+        this.organization.updateValue(this._myRequester.organization);
+        this.email.updateValue(this._myRequester.email);
+        this.rstreet.updateValue(this._myRequester.street);
+        this.runit.updateValue(this._myRequester.unit);
+        this.rcity.updateValue(this._myRequester.city);
+        this.rstate.updateValue(this._myRequester.state);
+        this.rzipcode.updateValue(this._myRequester.zipcode);
     }
 
     onSubmit (newrequest) {
@@ -408,8 +463,8 @@ export class AppComponent {
                         this._callCreateCasefiles();
                     }
                     else {
-                        this.showSummary();
                         this.clearForm();
+                        if (this.createNew) {this.showPropertyGroup();  this.repopulateRequester();} else {this.showSummary();}
                         this.notready = false;
                     }
                 },
@@ -417,18 +472,61 @@ export class AppComponent {
             );
     }
 
+    // TODO make this iterate over the _filesToUpload array, rather than one bulk POST, for better error management
     private _callCreateCasefiles () {
         // create the new casefiles
-        this._casefileService.createCasefiles(this._myCase.id, this._filesToUpload)
-            .then(
-                (result) => {
-                    this.showSummary();
-                    this.clearForm();
-                    this.notready = false;
-                },
-                (error) => {
-                    console.error(error);
+        this.fileUploadMessages = "";
+        let errorMessages = "";
+        let errorFiles = "";
+        for (let i = 0; i < this._filesToUpload.length; i++) {
+            let file = this._filesToUpload[i];
+            if (APP_SETTINGS.CONTENT_TYPES.indexOf(file.type) > -1) {
+                if (file.size > APP_SETTINGS.MAX_UPLOAD_SIZE) {
+                    this._casefileService.createCasefiles(this._myCase.id, file)
+                        .then(
+                            (result) => {
+                                // the server successfully saved the files
+                                this.fileUploadMessages += "SUCCESS: File uploaded. " + file.name + ".\n";
+                            },
+                            (error) => {
+                                // the server encountered an invalid file or an error
+                                let message = "ERROR: File not uploaded. " + file.name + " (" + ((file.size)/1024/1024).toFixed(3) + " MBs) (" + file.type + "). (REASON: " + error + ").\n";
+                                this.fileUploadMessages += message;
+                                errorMessages += message;
+                                errorFiles += file.name;
+                            }
+                        );
                 }
+                else {
+                    this.fileUploadMessages += "WARNING: File not uploaded, file size too big. " + file.name + " (" + ((file.size)/1024/1024).toFixed(3) + " MBs).\n";
+                }
+            }
+            else {
+                this.fileUploadMessages += "WARNING: File not uploaded, not a valid file type. " + file.name + " (" + file.type + ").\n";
+            }
+        }
+        if (errorMessages.length > 0) {
+            let newcomment = "During the initial request the following file(s) failed to upload:\n";
+            newcomment += errorFiles + "\n";
+            newcomment += "This is the collection of error messages from the failed upload attempt(s):\n";
+            newcomment += errorMessages;
+            this._createComment(newcomment);
+            this.fileUploadError = true;
+        }
+        else {
+            this.fileUploadError = false;
+        }
+        this.clearForm();
+        if (this.createNew) {this.showPropertyGroup(); this.repopulateRequester();} else {this.showSummary();}
+        this.notready = false;
+    }
+
+    private _createComment(newcomment) {
+        if (!newcomment) {return;}
+        this._commentService.createComment(new Comment(this._myCase.id, newcomment))
+            .subscribe(
+                comment => console.log(comment),
+                error =>  console.error(<any>error)
             );
     }
 

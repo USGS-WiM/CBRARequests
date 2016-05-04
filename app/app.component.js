@@ -1,4 +1,4 @@
-System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/case', './properties/property', './requesters/requester', './cases/case.service', './casefiles/casefile.service', './properties/property.service', './requesters/requester.service', './app.settings'], function(exports_1, context_1) {
+System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/case', './properties/property', './requesters/requester', './comments/comment', './cases/case.service', './casefiles/casefile.service', './properties/property.service', './requesters/requester.service', './comments/comment.service', './app.settings'], function(exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -10,7 +10,7 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
-    var core_1, http_1, common_1, case_1, property_1, requester_1, case_service_1, casefile_service_1, property_service_1, requester_service_1, app_settings_1;
+    var core_1, http_1, common_1, case_1, property_1, requester_1, comment_1, case_service_1, casefile_service_1, property_service_1, requester_service_1, comment_service_1, app_settings_1;
     var AppComponent;
     return {
         setters:[
@@ -32,6 +32,9 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
             function (requester_1_1) {
                 requester_1 = requester_1_1;
             },
+            function (comment_1_1) {
+                comment_1 = comment_1_1;
+            },
             function (case_service_1_1) {
                 case_service_1 = case_service_1_1;
             },
@@ -44,16 +47,20 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
             function (requester_service_1_1) {
                 requester_service_1 = requester_service_1_1;
             },
+            function (comment_service_1_1) {
+                comment_service_1 = comment_service_1_1;
+            },
             function (app_settings_1_1) {
                 app_settings_1 = app_settings_1_1;
             }],
         execute: function() {
             AppComponent = (function () {
-                function AppComponent(fb, _caseService, _casefileService, _propertyService, _requesterService) {
+                function AppComponent(fb, _caseService, _casefileService, _propertyService, _requesterService, _commentService) {
                     this._caseService = _caseService;
                     this._casefileService = _casefileService;
                     this._propertyService = _propertyService;
                     this._requesterService = _requesterService;
+                    this._commentService = _commentService;
                     this.requestcase = {};
                     this.requestproperty = {};
                     this.requestrequester = {};
@@ -62,14 +69,21 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this.active = true;
                     this.notready = true;
                     this.noxhr = true;
+                    this.createNew = false;
                     this.alreadyExists = false;
+                    this.fileUploadError = false;
+                    this.fileTypeInvalid = false;
+                    this.fileSizeInvalid = false;
+                    this.invalidFile = "";
+                    this.invalidType = "";
+                    this.fileUploadMessages = "";
                     this.salutations = app_settings_1.APP_SETTINGS.SALUTATIONS;
                     this.states = app_settings_1.APP_SETTINGS.US_STATES;
                     this.pstreet = new common_1.Control("", common_1.Validators.required);
                     this.punit = new common_1.Control("");
                     this.pcity = new common_1.Control("", common_1.Validators.required);
                     this.pstate = new common_1.Control("");
-                    this.pzipcode = new common_1.Control("");
+                    this.pzipcode = new common_1.Control("", common_1.Validators.maxLength(5));
                     this.subdivision = new common_1.Control("");
                     this.policy_number = new common_1.Control("");
                     this.salutation = new common_1.Control("");
@@ -81,7 +95,7 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this.runit = new common_1.Control("");
                     this.rcity = new common_1.Control("");
                     this.rstate = new common_1.Control("");
-                    this.rzipcode = new common_1.Control("");
+                    this.rzipcode = new common_1.Control("", common_1.Validators.maxLength(5));
                     this.casefiles = new common_1.Control("");
                     this.hideWelcome = false;
                     this.hideStatusLookup = true;
@@ -207,10 +221,31 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this.fileDragHover(fileInput);
                     var selectedFiles = fileInput.target.files || fileInput.dataTransfer.files;
                     for (var i = 0, j = selectedFiles.length; i < j; i++) {
-                        this._filesToUpload.push(selectedFiles[i]);
+                        var selectedFile = selectedFiles[i];
+                        if (app_settings_1.APP_SETTINGS.CONTENT_TYPES.indexOf(selectedFile.type) > -1) {
+                            if (selectedFiles[i].size > app_settings_1.APP_SETTINGS.MAX_UPLOAD_SIZE) {
+                                this._filesToUpload.push(selectedFile);
+                            }
+                            else {
+                                for (var k = 0; k < i; k++) {
+                                    this._filesToUpload.pop();
+                                }
+                                this.invalidSize = selectedFile.size;
+                                this.invalidFile = selectedFile.name;
+                                this.fileSizeInvalid = true;
+                            }
+                        }
+                        else {
+                            for (var k = 0; k < i; k++) {
+                                this._filesToUpload.pop();
+                            }
+                            this.invalidType = selectedFile.type;
+                            this.invalidFile = selectedFile.name;
+                            this.fileTypeInvalid = true;
+                        }
                     }
                     for (var i = 0, f = void 0; f = this._filesToUpload[i]; i++) {
-                        var fileDetails = { 'name': f.name, 'size': ((f.size) / 1024 / 1024).toFixed(3) };
+                        var fileDetails = { 'name': f.name, 'size': ((f.size) / 1024 / 1024).toFixed(3), 'type': f.type };
                         this.filesToUploadDetails.push(fileDetails);
                     }
                 };
@@ -227,7 +262,20 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                     this.active = false;
                     setTimeout(function () { _this.notready = false; _this.active = true; }, 1000);
                 };
-                AppComponent.prototype.onSubmit = function (newrequest) {
+                AppComponent.prototype.repopulateRequester = function () {
+                    // repopulate the requester group fields
+                    this.salutation.updateValue(this._myRequester.salutation);
+                    this.first_name.updateValue(this._myRequester.first_name);
+                    this.last_name.updateValue(this._myRequester.last_name);
+                    this.organization.updateValue(this._myRequester.organization);
+                    this.email.updateValue(this._myRequester.email);
+                    this.rstreet.updateValue(this._myRequester.street);
+                    this.runit.updateValue(this._myRequester.unit);
+                    this.rcity.updateValue(this._myRequester.city);
+                    this.rstate.updateValue(this._myRequester.state);
+                    this.rzipcode.updateValue(this._myRequester.zipcode);
+                };
+                AppComponent.prototype.onSubmit = function (newrequest, createNew) {
                     // check if the submitter is a bot or a human
                     // a bot will fill in the test field, but a human will not because it is hidden
                     if (document.getElementById("test").innerHTML != '') {
@@ -371,23 +419,80 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                             _this._callCreateCasefiles();
                         }
                         else {
-                            _this.showSummary();
                             _this.clearForm();
+                            if (_this.createNew) {
+                                _this.showPropertyGroup();
+                                _this.repopulateRequester();
+                            }
+                            else {
+                                _this.showSummary();
+                            }
                             _this.notready = false;
                         }
                     }, function (error) { return console.error(error); });
                 };
+                // TODO make this iterate over the _filesToUpload array, rather than one bulk POST, for better error management
                 AppComponent.prototype._callCreateCasefiles = function () {
                     var _this = this;
                     // create the new casefiles
-                    this._casefileService.createCasefiles(this._myCase.id, this._filesToUpload)
-                        .then(function (result) {
-                        _this.showSummary();
-                        _this.clearForm();
-                        _this.notready = false;
-                    }, function (error) {
-                        console.error(error);
-                    });
+                    this.fileUploadMessages = "";
+                    var errorMessages = "";
+                    var errorFiles = "";
+                    var _loop_1 = function(i) {
+                        var file = this_1._filesToUpload[i];
+                        if (app_settings_1.APP_SETTINGS.CONTENT_TYPES.indexOf(file.type) > -1) {
+                            if (file.size > app_settings_1.APP_SETTINGS.MAX_UPLOAD_SIZE) {
+                                this_1._casefileService.createCasefiles(this_1._myCase.id, file)
+                                    .then(function (result) {
+                                    // the server successfully saved the files
+                                    _this.fileUploadMessages += "SUCCESS: File uploaded. " + file.name + ".\n";
+                                }, function (error) {
+                                    // the server encountered an invalid file or an error
+                                    var message = "ERROR: File not uploaded. " + file.name + " (" + ((file.size) / 1024 / 1024).toFixed(3) + " MBs) (" + file.type + "). (REASON: " + error + ").\n";
+                                    _this.fileUploadMessages += message;
+                                    errorMessages += message;
+                                    errorFiles += file.name;
+                                });
+                            }
+                            else {
+                                this_1.fileUploadMessages += "WARNING: File not uploaded, file size too big. " + file.name + " (" + ((file.size) / 1024 / 1024).toFixed(3) + " MBs).\n";
+                            }
+                        }
+                        else {
+                            this_1.fileUploadMessages += "WARNING: File not uploaded, not a valid file type. " + file.name + " (" + file.type + ").\n";
+                        }
+                    };
+                    var this_1 = this;
+                    for (var i = 0; i < this._filesToUpload.length; i++) {
+                        _loop_1(i);
+                    }
+                    if (errorMessages.length > 0) {
+                        var newcomment = "During the initial request the following file(s) failed to upload:\n";
+                        newcomment += errorFiles + "\n";
+                        newcomment += "This is the collection of error messages from the failed upload attempt(s):\n";
+                        newcomment += errorMessages;
+                        this._createComment(newcomment);
+                        this.fileUploadError = true;
+                    }
+                    else {
+                        this.fileUploadError = false;
+                    }
+                    this.clearForm();
+                    if (this.createNew) {
+                        this.showPropertyGroup();
+                        this.repopulateRequester();
+                    }
+                    else {
+                        this.showSummary();
+                    }
+                    this.notready = false;
+                };
+                AppComponent.prototype._createComment = function (newcomment) {
+                    if (!newcomment) {
+                        return;
+                    }
+                    this._commentService.createComment(new comment_1.Comment(this._myCase.id, newcomment))
+                        .subscribe(function (comment) { return console.log(comment); }, function (error) { return console.error(error); });
                 };
                 AppComponent = __decorate([
                     core_1.Component({
@@ -399,9 +504,10 @@ System.register(['angular2/core', 'angular2/http', 'angular2/common', './cases/c
                             property_service_1.PropertyService,
                             requester_service_1.RequesterService,
                             case_service_1.CaseService,
-                            casefile_service_1.CasefileService]
+                            casefile_service_1.CasefileService,
+                            comment_service_1.CommentService]
                     }), 
-                    __metadata('design:paramtypes', [common_1.FormBuilder, case_service_1.CaseService, casefile_service_1.CasefileService, property_service_1.PropertyService, requester_service_1.RequesterService])
+                    __metadata('design:paramtypes', [common_1.FormBuilder, case_service_1.CaseService, casefile_service_1.CasefileService, property_service_1.PropertyService, requester_service_1.RequesterService, comment_service_1.CommentService])
                 ], AppComponent);
                 return AppComponent;
             }());

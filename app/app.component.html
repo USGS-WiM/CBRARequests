@@ -50,8 +50,12 @@
                     <label>City</label>
                     <input type="text" ngControl="city">
 
-                    <label>State</label>
-                    <input type="text" ngControl="state">
+                    <label for="pstate">State</label>
+                    <select id="pstate" ngControl="state" (change)="updatePStateControlValue(newState.value)" #newState>
+                        <option value=""></option>
+                        <option *ngFor="#state of states" [value]="state">{{state}}</option>
+                    </select>
+                    <br /><br />
 
                     <label>Zipcode</label>
                     <input type="text" ngControl="zipcode">
@@ -69,16 +73,15 @@
                 <div [hidden]="hideRequesterGroup" ngControlGroup="requestergroup">
 
                     <h2 class="form-group-header">Requester Information</h2>
-
-
-
+                    
                     <!-- <button type="button" (click)="fillNFIP()" class="btn btn-default nav-ctrl-btn">NFIP</button> -->
 
                     <label for="salutation">Salutation</label>
-                    <select id="salutation"  ngControl="salutation" (change)="updateSalutationControlValue(newSalutation.value)" #newSalutation>
+                    <select id="salutation" ngControl="salutation" (change)="updateSalutationControlValue(newSalutation.value)" #newSalutation>
                         <option value=""></option>
                         <option *ngFor="#salutation of salutations" [value]="salutation">{{salutation}}</option>
                     </select>
+                    <br /><br />
 
                     <label>First Name</label>
                     <input type="text" ngControl="first_name">
@@ -101,8 +104,12 @@
                     <label>City</label>
                     <input type="text" ngControl="city">
 
-                    <label>State</label>
-                    <input type="text" ngControl="state">
+                    <label for="rstate">State</label>
+                    <select id="rstate" ngControl="state" (change)="updateRStateControlValue(newState.value)" #newState>
+                        <option value=""></option>
+                        <option *ngFor="#state of states" [value]="state">{{state}}</option>
+                    </select>
+                    <br /><br />
 
                     <label>Zipcode</label>
                     <input type="text" ngControl="zipcode">
@@ -116,11 +123,16 @@
 
                     <h2 class="form-group-header">Files</h2>
 
+                    <p>WARNING: This is a government system. etc...</p>
+
                     <label>Files to Upload</label>
                     <div class="form-group">
                         <div id="casefilesToUpload">
-                            <p *ngFor="#fileDetails of filesToUploadDetails; #i=index"><span>{{ fileDetails.name }}: </span><span>{{ fileDetails.size }} MBs</span><button type="button" (click)="removeCasefile(i)">-</button></p>
+                            <p *ngFor="#fileDetails of filesToUploadDetails; #i=index"><span>{{ fileDetails.name }}: </span><span>{{ fileDetails.size }} MBs</span><span> ({{ fileDetails.type }})</span><button type="button" (click)="removeCasefile(i)">-</button></p>
                         </div>
+                        <p [hidden]="!fileTypeInvalid"><strong>A file you selected ({{ invalidFile }}) has an invalid file type ({{ invalidType }}). Please only attempt to select files of the following types:\n
+                        .txt .pdf .doc .docx .jpeg .png .gif .tiff .bmp .zip .bz .bz2</strong></p>
+                        <p [hidden]="!fileSizeInvalid"><strong>A file you selected ({{ invalidFile }}) is too large ({{ invalidSize }}) to upload. Please only attempt to select files that are smaller than 2.5 MBs</strong></p>
                         <input id="fileselect" type="file" class="fileinput" multiple (change)="fileSelectHandler($event)" ngControl="casefiles" />
                             <!--<div id="filedrag" [hidden]="noxhr" (dragover)="fileDragHover($event)" (dragleave)="fileDragHover($event)" (drop)="fileSelectHandler($event)">or drop files here</div>-->
                     </div>
@@ -134,6 +146,7 @@
                 <input id="test" type="text" name="test" size="25" value="" />
 
                 <button type="submit" class="btn btn-default ctrl-btn-submit" [disabled]="!caseForm.valid">Submit</button>
+                <button type="submit" class="btn btn-default ctrl-btn-submit" [disabled]="!caseForm.valid" (click)="createNew=true;">Submit and Create New</button>
 
             </form>
 
@@ -146,12 +159,14 @@
                 <h2 class="form-group-header">Case Summary</h2>
 
                 <p [hidden]="!alreadyExists"><strong>A determination for this property by this requester has already been submitted.</strong></p>
+                <p [hidden]="!fileUploadError"><strong>The request was submitted, but not all the files could be uploaded.</strong></p>
 
                 <p *ngIf="requestcase.case_hash"><b>Case ID:</b> {{ requestcase.case_hash }}</p>
                 <p *ngIf="requestcase.request_date"><b>Request Date:</b> {{ requestcase.request_date }}</p>
                 <p *ngIf="requestcase.status"><b>Status:</b> {{ requestcase.status }}</p>
                 <p *ngIf="requestproperty.id"><b>Property:</b> {{ requestproperty.street }}, {{ requestproperty.city }}</p>
                 <p *ngIf="requestrequester.id"><b>Requester:</b> {{ requestrequester.first_name }} {{ requestrequester.last_name }}</p>
+                <p *ngIf="filesToUploadDetails.length > 0"><b>File Upload Results:</b> {{ fileUploadMessages }}</p>
 
                 <button type="button" (click)="showWelcome()" class="btn btn-default nav-ctrl-btn">Home</button>
 
