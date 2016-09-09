@@ -162,15 +162,18 @@
 
                 <h2 class="form-group-header">Case Summary</h2>
 
-                <p [hidden]="!alreadyExists"><strong>A determination for this property by this requester has already been submitted.</strong></p>
                 <p [hidden]="!fileUploadError"><strong>The request was submitted, but not all the files could be uploaded.</strong></p>
+                <p [hidden]="!alreadyExists"><strong>A determination for this property by this requester has already been submitted.</strong></p>
+                <p [hidden]="!doesnotExist"><strong>A determination with this Case ID: {{caseID.value}} <br /> does not exist.</strong></p>
 
-                <p *ngIf="requestcase.case_hash"><b>Case ID:</b> {{ requestcase.case_hash }}</p>
-                <p *ngIf="requestcase.request_date"><b>Request Date:</b> {{ requestcase.request_date }}</p>
-                <p *ngIf="requestcase.status"><b>Status:</b> {{ requestcase.status }}</p>
-                <p *ngIf="requestproperty.id"><b>Property:</b> {{ requestproperty.street }}, {{ requestproperty.city }}</p>
-                <p *ngIf="requestrequester.id"><b>Requester:</b> {{ requestrequester.first_name }} {{ requestrequester.last_name }}</p>
-                <p *ngIf="filesToUploadDetails.length > 0"><b>File Upload Results:</b> {{ fileUploadMessages }}</p>
+                <div [hidden]="doesnotExist">
+                    <p *ngIf="requestcase.case_hash"><b>Case ID:</b> {{ requestcase.case_hash }}</p>
+                    <p *ngIf="requestcase.request_date"><b>Request Date:</b> {{ requestcase.request_date }}</p>
+                    <p *ngIf="requestcase.status"><b>Status:</b> {{ requestcase.status }}</p>
+                    <p *ngIf="requestproperty.id"><b>Property:</b> {{ requestproperty.street }}, {{ requestproperty.city }}</p>
+                    <p *ngIf="requestrequester.id"><b>Requester:</b> {{ requestrequester.first_name }} {{ requestrequester.last_name }}</p>
+                    <p *ngIf="filesToUploadDetails.length > 0"><b>File Upload Results:</b> {{ fileUploadMessages }}</p>
+                </div>
 
                 <button type="button" (click)="showWelcome()" class="btn btn-default nav-ctrl-btn">Home</button>
 

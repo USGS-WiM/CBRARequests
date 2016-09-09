@@ -36,6 +36,7 @@ export class AppComponent {
     noxhr: Boolean = true;
     createNew: Boolean = false;
     alreadyExists: Boolean = false;
+    doesnotExist: Boolean = false;
     fileUploadError: Boolean = false;
     fileTypeInvalid: Boolean = false;
     fileSizeInvalid: Boolean = false;
@@ -45,7 +46,6 @@ export class AppComponent {
     fileUploadMessages: string = "";
     salutations: string[] = APP_SETTINGS.SALUTATIONS;
     states: string[] = APP_SETTINGS.US_STATES;
-  mus: number = APP_SETTINGS.MAX_UPLOAD_SIZE;
 
     //private _today = new Date().toISOString().substr(0,10);
 
@@ -198,9 +198,15 @@ export class AppComponent {
         this._caseService.getCases(new URLSearchParams('case_hash='+caseID))
             .subscribe(
                 acase => {
-                    this._myCase = acase[0];
-                    this.requestcase = this._myCase;
-                    document.getElementById("case_id").innerHTML = '';
+                    if (acase.length < 1) {
+                        this.doesnotExist = true;
+                    }
+                    else {
+                        this.doesnotExist = false;
+                        this._myCase = acase[0];
+                        this.requestcase = this._myCase;
+                        document.getElementById("case_id").innerHTML = '';
+                    }
                     this.showSummary();
                     this.notready = false;
                 },
