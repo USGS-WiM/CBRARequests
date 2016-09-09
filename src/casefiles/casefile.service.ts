@@ -1,6 +1,5 @@
 import {Injectable}     from '@angular/core';
 import {Http, RequestOptions, URLSearchParams} from '@angular/http';
-import {Observable} from 'rxjs/Rx';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/toPromise';
 import {APP_SETTINGS}   from '../app.settings';
@@ -18,45 +17,42 @@ export class CasefileService {
             .catch(this._handleError);
     }
 
-    createCasefiles(caseid: number, files: Array<File>) {
+    createCasefile(caseid: number, file: File) {
         return new Promise((resolve, reject) => {
-            for (let i = 0; i < files.length; i++) {
-                let file = files[i];
-                let contentType = file.type;
-                if (APP_SETTINGS.CONTENT_TYPES.indexOf(contentType) > -1) {
-                    if (file.size > APP_SETTINGS.MAX_UPLOAD_SIZE) {
-                        let formData:any = new FormData();
-                        formData.append("case", caseid);
-                        formData.append("file", file);
-                        let xhr = new XMLHttpRequest();
-                        xhr.onreadystatechange = function () {
-                            if (xhr.readyState == 4) {
-                                if (xhr.status == 201) {
-                                    reject(JSON.parse(xhr.response) + "\n");
-                                } else {
-                                    reject(xhr.response);
-                                }
+            let contentType = file.type;
+            if (APP_SETTINGS.CONTENT_TYPES.indexOf(contentType) > -1) {
+                if (file.size < APP_SETTINGS.MAX_UPLOAD_SIZE) {
+                    let formData:any = new FormData();
+                    formData.append("case", caseid);
+                    formData.append("file", file);
+                    let xhr = new XMLHttpRequest();
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState == 4) {
+                            if (xhr.status == 201) {
+                                resolve(JSON.parse(xhr.response) + "\n");
+                            } else {
+                                reject(xhr.response);
                             }
-                        };
-                        xhr.open("POST", APP_SETTINGS.CASEFILES_URL, true);
-                        //xhr.setRequestHeader("Content-Type", contentType);
-                        //xhr.setRequestHeader("Authorization", "Basic " + btoa(sessionStorage.getItem('username') + ":" + sessionStorage.getItem('password')));
-                        xhr.setRequestHeader(
-                            'Authorization', 'Basic ' +
-                            btoa(
-                                (sessionStorage.getItem('username') ? sessionStorage.getItem('username') : 'public') + ':' +
-                                (sessionStorage.getItem('password') ? sessionStorage.getItem('password') : 'public')
-                            )
-                        );
-                        xhr.send(formData);
-                    }
-                    else {
-                        reject("ERROR: File size too big. " + file.name + " (" + ((file.size)/1024/1024).toFixed(3) + " MBs).");
-                    }
+                        }
+                    };
+                    xhr.open("POST", APP_SETTINGS.CASEFILES_URL, true);
+                    //xhr.setRequestHeader("Content-Type", contentType);
+                    //xhr.setRequestHeader("Authorization", "Basic " + btoa(sessionStorage.getItem('username') + ":" + sessionStorage.getItem('password')));
+                    xhr.setRequestHeader(
+                        'Authorization', 'Basic ' +
+                        btoa(
+                            (sessionStorage.getItem('username') ? sessionStorage.getItem('username') : 'public') + ':' +
+                            (sessionStorage.getItem('password') ? sessionStorage.getItem('password') : 'public')
+                        )
+                    );
+                    xhr.send(formData);
                 }
                 else {
-                    reject("ERROR: Not a valid file type. " + file.name + " (" + file.type + ").");
+                    reject("ERROR: File size too big. " + file.name + " (" + ((file.size)/1024/1024).toFixed(3) + " MBs).");
                 }
+            }
+            else {
+                reject("ERROR: Not a valid file type. " + file.name + " (" + file.type + ").");
             }
         });
     }

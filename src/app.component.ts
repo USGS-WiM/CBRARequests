@@ -37,13 +37,14 @@ export class AppComponent {
     createNew: Boolean = false;
     alreadyExists: Boolean = false;
     doesnotExist: Boolean = false;
+    filesNotReady: Boolean = false;
     fileUploadError: Boolean = false;
     fileTypeInvalid: Boolean = false;
     fileSizeInvalid: Boolean = false;
     invalidFile: string = "";
     invalidType: string = "";
     invalidSize: number;
-    fileUploadMessages: string = "";
+    fileUploadMessages = [];
     salutations: string[] = APP_SETTINGS.SALUTATIONS;
     states: string[] = APP_SETTINGS.US_STATES;
 
@@ -186,6 +187,8 @@ export class AppComponent {
     }
 
     showWelcome() {
+        this.alreadyExists = false;
+        this.doesnotExist = false;
         this.hideWelcome = false;
         this.hideStatusLookup = true;
         this.hideCaseForm = true;
@@ -281,6 +284,9 @@ export class AppComponent {
 
     clearForm() {
         // reset the form
+        this._myCase = null;
+        this._myProperty = null;
+        this._myRequester = null;
         this.active = false;
         setTimeout(()=> { this.notready = false; this.active=true; }, 1000);
     }
@@ -356,6 +362,7 @@ export class AppComponent {
                     }
                     else {
                         // send the new request to the DB
+                        this.alreadyExists = false;
                         this._createRequest();
                     }
                 },
@@ -481,34 +488,38 @@ export class AppComponent {
     // TODO make this iterate over the _filesToUpload array, rather than one bulk POST, for better error management
     private _callCreateCasefiles () {
         // create the new casefiles
-        this.fileUploadMessages = "";
         let errorMessages = "";
         let errorFiles = "";
+        this.filesNotReady = true;
         for (let i = 0; i < this._filesToUpload.length; i++) {
             let file = this._filesToUpload[i];
             if (APP_SETTINGS.CONTENT_TYPES.indexOf(file.type) > -1) {
-                if (file.size > APP_SETTINGS.MAX_UPLOAD_SIZE) {
-                    this._casefileService.createCasefiles(this._myCase.id, file)
+                if (file.size < APP_SETTINGS.MAX_UPLOAD_SIZE) {
+                    this._casefileService.createCasefile(this._myCase.id, file)
                         .then(
                             (result) => {
-                                // the server successfully saved the files
-                                this.fileUploadMessages += "SUCCESS: File uploaded. " + file.name + ".\n";
+                                // the server successfully saved the file
+                                this.fileUploadMessages.push("SUCCESS: File uploaded: " + file.name);
+                                this.filesNotReady = false;
                             },
                             (error) => {
                                 // the server encountered an invalid file or an error
-                                let message = "ERROR: File not uploaded. " + file.name + " (" + ((file.size)/1024/1024).toFixed(3) + " MBs) (" + file.type + "). (REASON: " + error + ").\n";
-                                this.fileUploadMessages += message;
+                                let message = "ERROR: File not uploaded: " + file.name + " (" + ((file.size)/1024/1024).toFixed(3) + " MBs) (" + file.type + ")\n (REASON: " + error + ").";
+                                this.fileUploadMessages.push(message);
                                 errorMessages += message;
                                 errorFiles += file.name;
+                                this.filesNotReady = false;
                             }
                         );
                 }
                 else {
-                    this.fileUploadMessages += "WARNING: File not uploaded, file size too big. " + file.name + " (" + ((file.size)/1024/1024).toFixed(3) + " MBs).\n";
+                    this.fileUploadMessages.push("WARNING: File not uploaded, file size too big: " + file.name + " (" + ((file.size)/1024/1024).toFixed(3) + " MBs)");
+                    this.filesNotReady = false;
                 }
             }
             else {
-                this.fileUploadMessages += "WARNING: File not uploaded, not a valid file type. " + file.name + " (" + file.type + ").\n";
+                this.fileUploadMessages.push("WARNING: File not uploaded, not a valid file type: " + file.name + " (" + file.type + ")");
+                this.filesNotReady = false;
             }
         }
         if (errorMessages.length > 0) {
