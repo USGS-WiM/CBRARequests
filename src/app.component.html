@@ -1,4 +1,4 @@
-<div [hidden]="!notready" align="center"><i class="fa fa-circle-o-notch fa-spin fa-3x fa-fw"></i></div>
+<div [hidden]="!notready" align="center"><span class="loading-message">Submitting...<br><i class="fa fa-circle-o-notch fa-spin fa-3x fa-fw"></i></span></div>
 <div [hidden]="notready">
     <h1 class="form-header">CBRA Determination Request</h1>
     <div>
@@ -128,7 +128,6 @@
                         <div id="casefilesToUpload">
                             <p *ngFor="let fileDetails of filesToUploadDetails; let i=index"><span>{{ fileDetails.name }}: </span><span>{{ fileDetails.size }} MBs</span><span> ({{ fileDetails.type }})</span><button type="button" (click)="removeCasefile(i)">-</button></p>
                         </div>
-                      <p>Max Upload Size: {{mus}}</p>
                         <p [hidden]="!fileTypeInvalid"><strong>A file you selected ({{ invalidFile }}) has an invalid file type ({{ invalidType }}). Please only attempt to select files of the following types:\n
                         .txt .pdf .doc .docx .jpeg .png .gif .tiff .bmp .zip .bz .bz2</strong></p>
                         <p [hidden]="!fileSizeInvalid"><strong>A file you selected ({{ invalidFile }}) is too large ({{ invalidSize }}) to upload. Please only attempt to select files that are smaller than 2.5 MBs</strong></p>
@@ -172,7 +171,13 @@
                     <p *ngIf="requestcase.status"><b>Status:</b> {{ requestcase.status }}</p>
                     <p *ngIf="requestproperty.id"><b>Property:</b> {{ requestproperty.street }}, {{ requestproperty.city }}</p>
                     <p *ngIf="requestrequester.id"><b>Requester:</b> {{ requestrequester.first_name }} {{ requestrequester.last_name }}</p>
-                    <p *ngIf="filesToUploadDetails.length > 0"><b>File Upload Results:</b> {{ fileUploadMessages }}</p>
+                    <p *ngIf="filesToUploadDetails.length > 0"><b>File Upload Results:</b></p>
+                    <div [hidden]="!filesNotReady" align="center"><i class="fa fa-circle-o-notch fa-spin fa-3x fa-fw"></i></div>
+                    <div [hidden]="filesNotReady">
+                        <ul>
+                            <li *ngFor="let fileUploadMessage of fileUploadMessages">{{fileUploadMessage}}</li>
+                        </ul>
+                    </div>
                 </div>
 
                 <button type="button" (click)="showWelcome()" class="btn btn-default nav-ctrl-btn">Home</button>
