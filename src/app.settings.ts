@@ -1,10 +1,12 @@
-import {Injectable}     from '@angular/core';
-import {Headers} from '@angular/http';
+import {Injectable}        from '@angular/core';
+import {Headers}           from '@angular/http';
 
 @Injectable()
 export class APP_SETTINGS {
-    //private static _API_ENDPOINT: string = 'http://localhost:8000/cbraservices/';
-    private static _API_ENDPOINT: string = 'http://' + window.location.hostname + '/cbra/cbraservices/';
+
+    private static _environment: string = 'development';
+    private static _API_ENDPOINT: string = APP_SETTINGS._environment == 'production' ? 'http://' + window.location.hostname + '/cbra/cbraservices/' : 'http://localhost:8000/cbraservices/';
+    public static set environment (env: string) { this._environment = env };
 
     public static get AUTH_URL(): string { return this._API_ENDPOINT+'auth/' };
     public static get CASES_URL(): string { return this._API_ENDPOINT+'cases/' };

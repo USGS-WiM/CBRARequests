@@ -37,7 +37,8 @@ export class AppComponent {
     createNew: Boolean = false;
     alreadyExists: Boolean = false;
     doesnotExist: Boolean = false;
-    filesNotReady: Boolean = false;
+    filesSelectNotComplete: Boolean = false;
+    filesUploadNotComplete: Boolean = false;
     fileUploadError: Boolean = false;
     fileTypeInvalid: Boolean = false;
     fileSizeInvalid: Boolean = false;
@@ -53,6 +54,7 @@ export class AppComponent {
     private _myCase: Case;
     private _myProperty: Property;
     private _myRequester: Requester;
+    private _myRequesterReuse: Requester;
 
     caseForm: FormGroup;
 
@@ -233,6 +235,7 @@ export class AppComponent {
     }
 
     fileSelectHandler(fileInput: any){
+        this.filesSelectNotComplete = true;
         this.fileDragHover(fileInput);
         let selectedFiles = <Array<File>> fileInput.target.files || fileInput.dataTransfer.files;
         for (let i = 0, j = selectedFiles.length; i < j; i++) {
@@ -262,6 +265,7 @@ export class AppComponent {
         for (let i = 0, f; f = this._filesToUpload[i]; i++) {
             let fileDetails = {'name': f.name, 'size': ((f.size)/1024/1024).toFixed(3), 'type': f.type};
             this.filesToUploadDetails.push(fileDetails);
+            this.filesSelectNotComplete = false;
         }
     }
 
@@ -270,16 +274,16 @@ export class AppComponent {
         this.filesToUploadDetails.splice(index, 1);
     }
 
-    updateSalutationControlValue(value) {
-        this.salutation.updateValue(value);
+    updateSalutationControlValue(event) {
+        this.salutation.setValue(event.target.value);
     }
 
-    updatePStateControlValue(value) {
-        this.pstate.updateValue(value);
+    updatePStateControlValue(event) {
+        this.pstate.setValue(event.target.value);
     }
 
-    updateRStateControlValue(value) {
-        this.rstate.updateValue(value);
+    updateRStateControlValue(event) {
+        this.rstate.setValue(event.target.value);
     }
 
     clearForm() {
@@ -287,22 +291,23 @@ export class AppComponent {
         this._myCase = null;
         this._myProperty = null;
         this._myRequester = null;
+        this.caseForm.reset();
         this.active = false;
         setTimeout(()=> { this.notready = false; this.active=true; }, 1000);
     }
 
     repopulateRequester() {
         // repopulate the requester group fields
-        this.salutation.updateValue(this._myRequester.salutation);
-        this.first_name.updateValue(this._myRequester.first_name);
-        this.last_name.updateValue(this._myRequester.last_name);
-        this.organization.updateValue(this._myRequester.organization);
-        this.email.updateValue(this._myRequester.email);
-        this.rstreet.updateValue(this._myRequester.street);
-        this.runit.updateValue(this._myRequester.unit);
-        this.rcity.updateValue(this._myRequester.city);
-        this.rstate.updateValue(this._myRequester.state);
-        this.rzipcode.updateValue(this._myRequester.zipcode);
+        this.salutation.setValue(this._myRequesterReuse.salutation);
+        this.first_name.setValue(this._myRequesterReuse.first_name);
+        this.last_name.setValue(this._myRequesterReuse.last_name);
+        this.organization.setValue(this._myRequesterReuse.organization);
+        this.email.setValue(this._myRequesterReuse.email);
+        this.rstreet.setValue(this._myRequesterReuse.street);
+        this.runit.setValue(this._myRequesterReuse.unit);
+        this.rcity.setValue(this._myRequesterReuse.city);
+        this.rstate.setValue(this._myRequesterReuse.state);
+        this.rzipcode.setValue(this._myRequesterReuse.zipcode);
     }
 
     onSubmit (newrequest) {
@@ -342,6 +347,8 @@ export class AppComponent {
             newrequest.requestergroup.salutation, newrequest.requestergroup.organization,
             newrequest.requestergroup.email, newrequest.requestergroup.street, newrequest.requestergroup.unit,
             newrequest.requestergroup.city, newrequest.requestergroup.state, newrequest.requestergroup.zipcode);
+
+        if (this.createNew) {this._myRequesterReuse = this._myRequester;}
 
         // check if the property, requester, or case already exist
         this._getProperties(this._myProperty);
@@ -485,12 +492,11 @@ export class AppComponent {
             );
     }
 
-    // TODO make this iterate over the _filesToUpload array, rather than one bulk POST, for better error management
     private _callCreateCasefiles () {
         // create the new casefiles
         let errorMessages = "";
         let errorFiles = "";
-        this.filesNotReady = true;
+        this.filesUploadNotComplete = true;
         for (let i = 0; i < this._filesToUpload.length; i++) {
             let file = this._filesToUpload[i];
             if (APP_SETTINGS.CONTENT_TYPES.indexOf(file.type) > -1) {
@@ -500,7 +506,7 @@ export class AppComponent {
                             (result) => {
                                 // the server successfully saved the file
                                 this.fileUploadMessages.push("SUCCESS: File uploaded: " + file.name);
-                                this.filesNotReady = false;
+                                this.filesUploadNotComplete = false;
                             },
                             (error) => {
                                 // the server encountered an invalid file or an error
@@ -508,18 +514,18 @@ export class AppComponent {
                                 this.fileUploadMessages.push(message);
                                 errorMessages += message;
                                 errorFiles += file.name;
-                                this.filesNotReady = false;
+                                this.filesUploadNotComplete = false;
                             }
                         );
                 }
                 else {
                     this.fileUploadMessages.push("WARNING: File not uploaded, file size too big: " + file.name + " (" + ((file.size)/1024/1024).toFixed(3) + " MBs)");
-                    this.filesNotReady = false;
+                    this.filesUploadNotComplete = false;
                 }
             }
             else {
                 this.fileUploadMessages.push("WARNING: File not uploaded, not a valid file type: " + file.name + " (" + file.type + ")");
-                this.filesNotReady = false;
+                this.filesUploadNotComplete = false;
             }
         }
         if (errorMessages.length > 0) {
