@@ -51,11 +51,11 @@
                     <input type="text" formControlName="city">
 
                     <label for="pstate">State</label>
-                    <select id="pstate" formControlName="state" (change)="updatePStateControlValue(newState.value)" #newState>
+                    <select id="pstate" formControlName="state" (change)="updatePStateControlValue($event)">
                         <option value=""></option>
                         <option *ngFor="let state of states" [value]="state">{{state}}</option>
                     </select>
-                    <br /><br />
+                    <br />
 
                     <label>Zipcode</label>
                     <input type="text" formControlName="zipcode">
@@ -77,11 +77,11 @@
                     <!-- <button type="button" (click)="fillNFIP()" class="btn btn-default nav-ctrl-btn">NFIP</button> -->
 
                     <label for="salutation">Salutation</label>
-                    <select id="salutation" formControlName="salutation" (change)="updateSalutationControlValue(newSalutation.value)" #newSalutation>
+                    <select id="salutation" formControlName="salutation" (change)="updateSalutationControlValue($event)">
                         <option value=""></option>
                         <option *ngFor="let salutation of salutations" [value]="salutation">{{salutation}}</option>
                     </select>
-                    <br /><br />
+                    <br />
 
                     <label>First Name</label>
                     <input type="text" formControlName="first_name">
@@ -105,11 +105,11 @@
                     <input type="text" formControlName="city">
 
                     <label for="rstate">State</label>
-                    <select id="rstate" formControlName="state" (change)="updateRStateControlValue(newState.value)" #newState>
+                    <select id="rstate" formControlName="state" (change)="updateRStateControlValue($event)">
                         <option value=""></option>
                         <option *ngFor="let state of states" [value]="state">{{state}}</option>
                     </select>
-                    <br /><br />
+                    <br />
 
                     <label>Zipcode</label>
                     <input type="text" formControlName="zipcode">
@@ -123,16 +123,19 @@
 
                     <h2 class="form-group-header">Files</h2>
 
-                    <label>Files to Upload</label>
-                    <div class="form-group">
-                        <div id="casefilesToUpload">
-                            <p *ngFor="let fileDetails of filesToUploadDetails; let i=index"><span>{{ fileDetails.name }}: </span><span>{{ fileDetails.size }} MBs</span><span> ({{ fileDetails.type }})</span><button type="button" (click)="removeCasefile(i)">-</button></p>
+                    <div [hidden]="!filesSelectNotComplete" align="center"><i class="fa fa-circle-o-notch fa-spin fa-3x fa-fw"></i></div>
+                    <div [hidden]="filesSelectNotComplete">
+                        <label>Files to Upload</label>
+                        <div class="form-group">
+                            <div id="casefilesToUpload">
+                                <p *ngFor="let fileDetails of filesToUploadDetails; let i=index"><span>{{ fileDetails.name }}: </span><span>{{ fileDetails.size }} MBs</span><span> ({{ fileDetails.type }})</span><button type="button" (click)="removeCasefile(i)">-</button></p>
+                            </div>
+                            <p [hidden]="!fileTypeInvalid"><strong>A file you selected ({{ invalidFile }}) has an invalid file type ({{ invalidType }}). Please only attempt to select files of the following types:\n
+                            .txt .pdf .doc .docx .jpeg .png .gif .tiff .bmp .zip .bz .bz2</strong></p>
+                            <p [hidden]="!fileSizeInvalid"><strong>A file you selected ({{ invalidFile }}) is too large ({{ invalidSize }}) to upload. Please only attempt to select files that are smaller than 2.5 MBs</strong></p>
+                            <input id="fileselect" type="file" class="fileinput" multiple (change)="fileSelectHandler($event)" formControlName="casefiles" />
+                                <!--<div id="filedrag" [hidden]="noxhr" (dragover)="fileDragHover($event)" (dragleave)="fileDragHover($event)" (drop)="fileSelectHandler($event)">or drop files here</div>-->
                         </div>
-                        <p [hidden]="!fileTypeInvalid"><strong>A file you selected ({{ invalidFile }}) has an invalid file type ({{ invalidType }}). Please only attempt to select files of the following types:\n
-                        .txt .pdf .doc .docx .jpeg .png .gif .tiff .bmp .zip .bz .bz2</strong></p>
-                        <p [hidden]="!fileSizeInvalid"><strong>A file you selected ({{ invalidFile }}) is too large ({{ invalidSize }}) to upload. Please only attempt to select files that are smaller than 2.5 MBs</strong></p>
-                        <input id="fileselect" type="file" class="fileinput" multiple (change)="fileSelectHandler($event)" formControlName="casefiles" />
-                            <!--<div id="filedrag" [hidden]="noxhr" (dragover)="fileDragHover($event)" (dragleave)="fileDragHover($event)" (drop)="fileSelectHandler($event)">or drop files here</div>-->
                     </div>
 
                     <!--<input type="file" multiple (change)="fileChangeEvent($event)" formControlName="files" />-->
@@ -172,8 +175,8 @@
                     <p *ngIf="requestproperty.id"><b>Property:</b> {{ requestproperty.street }}, {{ requestproperty.city }}</p>
                     <p *ngIf="requestrequester.id"><b>Requester:</b> {{ requestrequester.first_name }} {{ requestrequester.last_name }}</p>
                     <p *ngIf="filesToUploadDetails.length > 0"><b>File Upload Results:</b></p>
-                    <div [hidden]="!filesNotReady" align="center"><i class="fa fa-circle-o-notch fa-spin fa-3x fa-fw"></i></div>
-                    <div [hidden]="filesNotReady">
+                    <div [hidden]="!filesUploadNotComplete" align="center"><i class="fa fa-circle-o-notch fa-spin fa-3x fa-fw"></i></div>
+                    <div [hidden]="filesUploadNotComplete">
                         <ul>
                             <li *ngFor="let fileUploadMessage of fileUploadMessages">{{fileUploadMessage}}</li>
                         </ul>
