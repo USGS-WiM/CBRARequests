@@ -4,7 +4,7 @@ import {Headers}           from '@angular/http';
 @Injectable()
 export class APP_SETTINGS {
 
-    private static _environment: string = 'development';
+    private static _environment: string = 'production';
     private static _API_ENDPOINT: string = APP_SETTINGS._environment == 'production' ? 'http://' + window.location.hostname + '/cbra/cbraservices/' : 'http://localhost:8000/cbraservices/';
     public static set environment (env: string) { this._environment = env };
 
