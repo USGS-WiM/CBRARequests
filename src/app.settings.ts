@@ -7,6 +7,7 @@ export class APP_SETTINGS {
     private static _environment: string = 'production';
     //private static _API_ENDPOINT: string = APP_SETTINGS._environment == 'production' ? 'http://' + window.location.hostname + '/cbra/cbraservices/' : 'http://localhost:8000/cbraservices/';
 	private static _API_ENDPOINT: string = 'https://' + window.location.hostname + '/cbra/cbraservices/';
+    //private static _API_ENDPOINT: string = 'http://' + window.location.hostname + ':8000/cbraservices/';
     public static set environment (env: string) { this._environment = env };
 
     public static get AUTH_URL(): string { return this._API_ENDPOINT+'auth/' };

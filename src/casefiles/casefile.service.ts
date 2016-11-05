@@ -25,6 +25,7 @@ export class CasefileService {
                     let formData:any = new FormData();
                     formData.append("case", caseid);
                     formData.append("file", file);
+                    formData.append("from_requester", true);
                     let xhr = new XMLHttpRequest();
                     xhr.onreadystatechange = function () {
                         if (xhr.readyState == 4) {

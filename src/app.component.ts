@@ -62,8 +62,9 @@ export class AppComponent {
     pstreet: FormControl = new FormControl("", Validators.required);
     punit: FormControl = new FormControl("");
     pcity: FormControl = new FormControl("", Validators.required);
-    pstate: FormControl = new FormControl("");
+    pstate: FormControl = new FormControl("", Validators.required);
     pzipcode: FormControl = new FormControl("", Validators.maxLength(5));
+    legal_description: FormControl = new FormControl("");
     subdivision: FormControl = new FormControl("");
     policy_number: FormControl = new FormControl("");
 
@@ -72,7 +73,7 @@ export class AppComponent {
     first_name: FormControl = new FormControl("", Validators.required);
     last_name: FormControl = new FormControl("", Validators.required);
     organization: FormControl = new FormControl("");
-    email: FormControl = new FormControl("");
+    email: FormControl = new FormControl("", Validators.required);
     rstreet: FormControl = new FormControl("");
     runit: FormControl = new FormControl("");
     rcity: FormControl = new FormControl("");
@@ -97,6 +98,7 @@ export class AppComponent {
                 city: this.pcity,
                 state: this.pstate,
                 zipcode: this.pzipcode,
+                legal_description: this.legal_description,
                 subdivision: this.subdivision,
                 policy_number: this.policy_number
             }),
@@ -310,6 +312,12 @@ export class AppComponent {
         this.rzipcode.setValue(this._myRequesterReuse.zipcode);
     }
 
+    cancel() {
+        this.clearForm();
+        if (this.createNew) {this.showPropertyGroup();  this.repopulateRequester();} else {this.showSummary();}
+        this.notready = false;
+    }
+
     onSubmit (newrequest) {
 
         // check if the submitter is a bot or a human
@@ -322,10 +330,10 @@ export class AppComponent {
 
         // ensure required fields have values
         // TODO remove the console logging and replace with proper user notification
-        if (!newrequest.propertygroup.street && !newrequest.propertygroup.city)
-            {console.log("Warning: couldn't find the property street and/or city"); return;}
-        if (!newrequest.requestergroup.first_name && !newrequest.requestergroup.last_name)
-            {console.log("Warning: couldn't find the requester first name and/or last name"); return;}
+        if (!newrequest.propertygroup.street && !newrequest.propertygroup.city  && !newrequest.propertygroup.state)
+            {console.log("Warning: couldn't find the property street and/or city and/or state"); return;}
+        if (!newrequest.requestergroup.first_name && !newrequest.requestergroup.last_name && !newrequest.requestergroup.email)
+            {console.log("Warning: couldn't find the requester first name and/or last name and/or email"); return;}
 
         // ensure no fields are null (use empty strings if null)
         for (let group of newrequest) {
@@ -340,7 +348,7 @@ export class AppComponent {
         this._myCase = new Case();
         this._myProperty = new Property(
             newrequest.propertygroup.street, newrequest.propertygroup.city, newrequest.propertygroup.state,
-            newrequest.propertygroup.zipcode, newrequest.propertygroup.unit,
+            newrequest.propertygroup.zipcode, newrequest.propertygroup.unit, newrequest.propertygroup.legal_description,
             newrequest.propertygroup.subdivision, newrequest.propertygroup.policy_number);
         this._myRequester = new Requester(
             newrequest.requestergroup.first_name, newrequest.requestergroup.last_name,
@@ -350,7 +358,7 @@ export class AppComponent {
 
         if (this.createNew) {this._myRequesterReuse = this._myRequester;}
 
-        // check if the property, requester, or case already exist
+        // check if the property, requester, or case already exist, and create them as necessary
         this._getProperties(this._myProperty);
 
     }
@@ -360,7 +368,7 @@ export class AppComponent {
             .subscribe(
                 cases => {
                     if (cases.length > 0) {
-                        // inform the user that the request already exists and how the summary
+                        // inform the user that the request already exists and show the summary
                         this._myCase.id = cases[0].id;
                         this.showSummary();
                         this.clearForm();
@@ -384,6 +392,7 @@ export class AppComponent {
                 +'&city='+property.city
                 +'&state='+property.state
                 +'&zipcode='+property.zipcode
+                +'&legal_description='+property.legal_description
             ))
             .subscribe(
                 properties => {
