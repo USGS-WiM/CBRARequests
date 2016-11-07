@@ -335,11 +335,20 @@ export class AppComponent {
         if (!newrequest.requestergroup.first_name && !newrequest.requestergroup.last_name && !newrequest.requestergroup.email)
             {console.log("Warning: couldn't find the requester first name and/or last name and/or email"); return;}
 
-        // ensure no fields are null (use empty strings if null)
-        for (let group of newrequest) {
+        // ensure no property fields are null (use empty strings if null)
+        for (let group of newrequest.propertygroup) {
             for (let key of group) {
-                if (!newrequest[key]) {
-                    newrequest[key] = "";
+                if (!newrequest.propertygroup[key]) {
+                    newrequest.propertygroup[key] = "";
+                }
+            }
+        }
+
+        // ensure no requester fields are null (use empty strings if null)
+        for (let group of newrequest.requestergroup) {
+            for (let key of group) {
+                if (!newrequest.requestergroup[key]) {
+                    newrequest.requestergroup[key] = "";
                 }
             }
         }
