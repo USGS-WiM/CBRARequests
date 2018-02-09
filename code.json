@@ -1,0 +1,46 @@
+[
+  {
+    "name": "CBRARequests",
+    "organization": "U.S. Geological Survey",
+    "description": "Client-side app for requesting CRBA determinations",
+    "version": "v0.0.0",
+    "status": "Development"
+
+    "permissions": {
+      "usageType": "openSource",
+      "licenses": [
+        {
+          "name": "Public Domain",
+          "URL": "https://github.com/usgs/CBRARequests/blob/master/LICENSE.md"
+        }
+      ]
+    },
+
+    "homepageURL": "https://wim.usgs.gov",
+    "downloadURL": "https://github.com/USGS-WiM/CBRARequests/archive/master.zip",
+    "disclaimerURL": "https://github.com/USGS-WiM/CBRARequests/blob/master/DISCLAIMER.md",
+    "repositoryUrl": "https://github.com/USGS-WiM/CBRARequests",
+    "vcs": "git",
+
+    "laborHours": null,
+
+    "tags": [
+      "cbra",
+      "requests"
+    ],
+
+    "languages": [
+      "typescript",
+      "javascript"
+    ],
+
+    "contact": {
+      "name": "Aaron Stephenson",
+      "email": "astephenson@usgs.gov"
+    },
+
+    "date": {
+      "metadataLastUpdated": "2018-02-09"
+    }
+  }
+]
