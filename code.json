@@ -2,8 +2,8 @@
   {
     "name": "CBRARequests",
     "organization": "U.S. Geological Survey",
-    "description": "Client-side app for requesting CRBA determinations",
-    "version": "v0.0.0",
+    "description": "CBRA (Coastal Barrier Resources Act) Determination Request web application",
+    "version": "v1.0.0",
     "status": "Archival",
 
     "permissions": {
@@ -26,12 +26,14 @@
 
     "tags": [
       "cbra",
-      "requests"
+      "cbrs",
+      "determinations",
+      "request"
     ],
 
     "languages": [
-      "typescript",
-      "javascript"
+      "javascript",
+      "typescript"
     ],
 
     "contact": {
@@ -40,7 +42,7 @@
     },
 
     "date": {
-      "metadataLastUpdated": "2018-02-09"
+      "metadataLastUpdated": "2019-04-25"
     }
   }
 ]
